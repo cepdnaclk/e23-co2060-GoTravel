@@ -3,8 +3,8 @@ layout: home
 permalink: index.html
 
 # Please update this with your repository name and project title
-repository-name: eYY-co2060-project-template
-title: Project Template
+repository-name: e23-co2060-GoTravel
+title: GoTravel
 ---
 
 [comment]: # "This is the standard layout for the project, but you can clean this and use your own template, and add more information required for your own project"
@@ -21,13 +21,13 @@ A HTML template integrated with the given GitHub repository templates, based on 
 
 # Project Title
 
----
+GoTravel
 
 ## Team
--  eNumber, Name, [email](mailto:name@email.com)
--  eNumber, Name, [email](mailto:name@email.com)
--  eNumber, Name, [email](mailto:name@email.com)
-
+-  E/23/122, P.H.S. Gunawardhana, e23122@eng.pdn.ac.lk(mailto:name@email.com)
+-  E/23/116, D.M.N.N.L. Gunathilake, e23116@eng.pdn.ac.lk(mailto:name@email.com)
+-  E/23/271, U.T.N Perera, e23271@eng.pdn.ac.lk(mailto:name@email.com)
+-  E/23/270, T.N.D. Perera, e23270@eng.pdn.ac.lk(mailto:name@email.com)
 <!-- Image (photo/drawing of the final hardware) should be here -->
 
 <!-- This is a sample image, to show how to add images to your page. To learn more options, please refer [this](https://projects.ce.pdn.ac.lk/docs/faq/how-to-add-an-image/) -->
