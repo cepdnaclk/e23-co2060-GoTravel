@@ -1,31 +1,32 @@
-{
-    "team": [
-        {
-            "name": "Team Member Name 1",
-            "email": "email@eng.pdn.ac.lk",
-            "eNumber": "E/yy/xxx"
-        },
-        {
-            "name": "Team Member Name 2",
-            "email": "email@eng.pdn.ac.lk",
-            "eNumber": "E/yy/xxx"
-        },
-        {
-            "name": "Team Member Name 3",
-            "email": "email@eng.pdn.ac.lk",
-            "eNumber": "E/yy/xxx"
-        }
-    ],
-    "supervisors": [
-        {
-            "name": "Dr. Supervisor 1",
-            "email": "email@eng.pdn.ac.lk"
-        },
-        {
-            "name": "Supervisor 2",
-            "email": "email@eng.pdn.ac.lk"
-        }
-    ],
+ {
+ "team": [
+    {
+      "name": "P.H.S. Gunawardhana",
+      "email": "e23122@eng.pdn.ac.lk",
+      "eNumber": "E/23/122"
+    },
+    {
+      "name": "D.M.N.N.L. Gunathilaka",
+      "email": "e23116@eng.pdn.ac.lk",
+      "eNumber": "E/23/116"
+    },
+    {
+      "name": "U.T.N. Perera",
+      "email": "e23271@eng.pdn.ac.lk",
+      "eNumber": "E/23/271"
+    },
+    {
+      "name": "T.N.D. Perera",
+      "email": "e23270@eng.pdn.ac.lk",
+      "eNumber": "E/23/270"
+    }
+  ],
+  "supervisors": [
+    {
+      "name": "H.M.S.R. Herath",
+      "email": "e21180@eng.pdn.ac.lk"
+    }
+  ],
     "tags": ["Web", "Software Systems", "CO2060"],
     "image":"cover_page.jpg",
     "thumbnail":"thumbnail.jpg"
