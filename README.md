@@ -1,57 +1,48 @@
 ___
-# DELETE THIS INSTRUCTIONS AND ADD AN INTRODUCTION ABOUT YOUR PROJECT
+# GoTravel - Future of Travel Planning
 ___
 
-# eYY-co2060-project-template
+# e23-co2060-project:Second Year Project
 
-This is a sample repository you can use for your Software Systems Design Project. Once you followed these instructions, remove the text and add a brief introduction to here.
+This project is a web-based Travel Planning System built using HTML, CSS, JavaScript, Supabase (PostgreSQL), and Google Apps Script. It aims to simplify the chaotic travel planning process by providing a single intelligent platform for travelers and travel service providers. Each user role has a separate dashboard with tailored features - travelers can search destinations, book hotels and transport, manage trips, and save wishlists, while business users can manage their inventory, handle bookings, and track revenue. The system uses Supabase for database management with Row Level Security (RLS) policies and JWT-based authentication to ensure secure access and data protection.
 
-### Enable GitHub Pages
+An AI-powered recommendation engine is integrated using Google Apps Script and OpenAI's GPT API to provide personalized destination suggestions, generate custom itineraries, and offer intelligent travel assistance based on user preferences, budget, and travel history. The platform consolidates scattered information from multiple sources into one organized workspace, reducing the  hours typically spent planning a trip to just minutes, while helping users make better travel decisions and stay within budget. All AI recommendations serve as suggestions to enhance the user experience, with final travel decisions remaining with the users.
 
-You can put the things to be shown in GitHub pages into the _docs/_ folder. Both html and md file formats are supported. You need to go to settings and enable GitHub pages and select _main_ branch and _docs_ folder from the dropdowns, as shown in the below image.
-
-![image](https://user-images.githubusercontent.com/11540782/98789936-028d3600-2429-11eb-84be-aaba665fdc75.png)
-
-### Special Configurations
-
-These projects will be automatically added into [https://projects.ce.pdn.ac.lk](). If you like to show more details about your project on this site, you can fill the parameters in the file, _/docs/index.json_
 
 ```
-{
-  "title": "This is the title of the project",
-  "team": [
+ {
+ "team": [
     {
-      "name": "Team Member Name 1",
-      "email": "email@eng.pdn.ac.lk",
-      "eNumber": "E/yy/xxx"
+      "name": "P.H.S. Gunawardhana",
+      "email": "e23122@eng.pdn.ac.lk",
+      "eNumber": "E/23/122"
     },
     {
-      "name": "Team Member Name 2",
-      "email": "email@eng.pdn.ac.lk",
-      "eNumber": "E/yy/xxx"
+      "name": "D.M.N.N.L. Gunathilaka",
+      "email": "e23116@eng.pdn.ac.lk",
+      "eNumber": "E/23/116"
     },
     {
-      "name": "Team Member Name 3",
-      "email": "email@eng.pdn.ac.lk",
-      "eNumber": "E/yy/xxx"
+      "name": "U.T.N. Perera",
+      "email": "e23271@eng.pdn.ac.lk",
+      "eNumber": "E/23/271"
+    },
+    {
+      "name": "T.N.D. Perera",
+      "email": "e23270@eng.pdn.ac.lk",
+      "eNumber": "E/23/270"
     }
   ],
   "supervisors": [
     {
-      "name": "Dr. Supervisor 1",
-      "email": "email@eng.pdn.ac.lk"
-    },
-    {
-      "name": "Supervisor 2",
-      "email": "email@eng.pdn.ac.lk"
+      "name": "H.M.S.R. Herath",
+      "email": "e21180@eng.pdn.ac.lk"
     }
   ],
-  "tags": ["Web", "Software Systems", "CO2060"]
+    "tags": ["Web", "Software Systems", "CO2060"],
+    "image":"cover_page.jpg",
+    "thumbnail":"thumbnail.jpg"
 }
 ```
 
-Once you filled this _index.json_ file, please verify the syntax is correct. (You can use [this](https://jsonlint.com/) tool).
 
-### Page Theme
-
-A custom theme integrated with this GitHub Page, which is based on [github.com/cepdnaclk/eYY-project-theme](https://github.com/cepdnaclk/eYY-project-theme). If you like to remove this default theme, you can remove the file, _docs/\_config.yml_ and use HTML based website.
