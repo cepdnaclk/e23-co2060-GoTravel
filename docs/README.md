@@ -42,7 +42,7 @@ GoTravel
 5. [Conclusion](#conclusion)
 6. [Links](#links)
 
-# TravelAt - Smart Travel Planning Made Simple
+# GoTravel - Smart Travel Planning Made Simple
 ------------------------------------------------------------------------------------------------------------------------
 ## Introduction
 
