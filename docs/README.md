@@ -42,27 +42,252 @@ GoTravel
 5. [Conclusion](#conclusion)
 6. [Links](#links)
 
+# TravelAt - Smart Travel Planning Made Simple
+------------------------------------------------------------------------------------------------------------------------
 ## Introduction
 
-Description of the real world problem and solution, impact
+Planning a trip should be exciting, not exhausting. GoTravel transforms the chaotic process of organizing travel into a seamless, enjoyable experience.
 
+### The Problem
 
+Modern travelers waste **8-12 hours** planning a single trip, juggling:
+- 20+ browser tabs across booking sites and review platforms
+- Scattered information in emails, screenshots, and notes
+- Manual price comparisons with no centralized view
+- Difficult coordination with travel companions
+- Hidden costs that blow budgets
+
+**The result?** Frustration, wasted time, and decision fatigue before the trip even begins.
+
+### Our Solution
+
+GoTravel is an AI-powered platform that brings everything into one intelligent workspace:
+
+- **AI Recommendations** - Smart suggestions for destinations, activities, and itineraries tailored to you
+- **Unified Dashboard** - All bookings and plans organized in one beautiful interface
+- **Collaborative Planning** - Plan with friends and family in real-time
+- **Smart Budgeting** - Track expenses automatically and stay on budget
+- **Personalized Itineraries** - Custom day-by-day plans that match your style
+
+### Impact
+
+✨ **Save time** - Plan trips in minutes, not hours  
+✨ **Reduce stress** - No more scattered tabs and lost information  
+✨ **Travel smarter** - Make better decisions with organized, comprehensive data  
+✨ **Stay on budget** - Clear cost visibility prevents overspending  
+
+**Our mission:** Give travelers back the joy of planning, so they can spend less time stressing and more time dreaming about their next adventure.
+
+------------------------------------------------------------------------------------------------------------------------------
 ## Solution Architecture
 
-High level diagram + description
+### High-Level Overview
 
-## Software Designs
+GoTravel is built on a three-tier architecture with distinct presentation, application, and data layers, ensuring modularity, scalability, and maintainability.
 
-Detailed designs with many sub-sections
+### Architecture Diagram
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            PRESENTATION LAYER                                    │
+├──────────────┬──────────────┬──────────────┬──────────────┬─────────────────────┤
+│              │              │              │              │                     │
+│  Front Page  │ Login/Register│ Destination │  Hotel Page  │  Transport Page    │
+│              │     Page     │     Page     │              │                     │
+│              │              │              │              │                     │
+└──────┬───────┴──────┬───────┴──────┬───────┴──────┬───────┴──────┬──────────────┘
+       │              │              │              │              │
+       │      ┌───────┴──────┐       │              │              │
+       │      │              │       │              │              │
+┌──────▼──────▼────┐  ┌──────▼───────▼──────────────▼──────────────▼──────┐
+│                  │  │                                                    │
+│    Traveler      │  │              Business Dashboard                   │
+│    Dashboard     │  │                                                    │
+│                  │  │                                                    │
+└──────┬───────────┘  └──────┬─────────────────────────────────────────────┘
+       │                     │
+       └──────────┬──────────┘
+                  │
+┌─────────────────┴─────────────────────────────────────────────────────────────┐
+│                          APPLICATION LAYER                                     │
+├────────────────┬──────────────┬─────────────────────┬────────────────────────┤
+│                │              │                     │                        │
+│ Authentication │      AI      │ Hotel/Transport     │  Hotel/Transport      │
+│    Service     │   Service    │ Searching Service   │  Storing Service      │
+│                │              │                     │                        │
+└────────┬───────┴──────┬───────┴──────────┬──────────┴────────┬───────────────┘
+         │              │                  │                   │
+         │              │                  │                   │
+         │              └────────┬─────────┘                   │
+         │                       │                             │
+         │                  ┌────▼─────┐                       │
+         │                  │          │                       │
+         │                  │ Booking  │                       │
+         │                  │ Service  │                       │
+         │                  │          │                       │
+         │                  └────┬─────┘                       │
+         │                       │                             │
+         └───────────────────────┼─────────────────────────────┘
+                                 │
+┌────────────────────────────────▼───────────────────────────────────────────────┐
+│                               DATA LAYER                                        │
+│                                                                                 │
+│                          ┌─────────────────┐                                   │
+│                          │                 │                                   │
+│                          │    Supabase     │                                   │
+│                          │    Database     │                                   │
+│                          │                 │                                   │
+│                          └─────────────────┘                                   │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Architecture Components
+
+#### **Presentation Layer**
+- **Front Page** - Landing page and entry point
+- **Login/Register Page** - User authentication
+- **Destination Page** - Browse destinations
+- **Hotel Page** - Search hotels
+- **Transport Page** - Find transportation
+- **Traveler Dashboard** - User trip management
+- **Business Dashboard** - Provider management interface
+
+#### **Application Layer**
+- **Authentication Service** - User login & session management
+- **AI Service** - Personalized recommendations
+- **Hotel/Transport Searching Service** - Real-time availability search
+- **Hotel/Transport Storing Service** - Inventory management
+- **Booking Service** - Reservation processing
+
+#### **Data Layer**
+- **Supabase** - PostgreSQL database for all application data
+
+### Data Flow
+
+1. Users access frontend pages (Presentation Layer)
+2. Authentication Service validates user sessions
+3. AI Service provides personalized recommendations
+4. Search services query stored inventory
+5. Booking Service processes reservations
+6. All data persists in Supabase database
+-------------------------------------------------------------------------------------------------------------------------
+## Software Design
+
+### 1. System Architecture
+
+#### 1.1 Architectural Pattern
+TravelAt follows a **Three-Tier Architecture** with a lightweight frontend and serverless backend:
+- **Presentation Layer** - HTML, CSS, JavaScript (Vanilla JS)
+- **Application Layer** - Google Apps Script for business logic
+- **Data Layer** - Supabase (PostgreSQL database)
+
+This design ensures:
+- **Simplicity** - No complex frameworks, easy to understand and maintain
+- **Cost-Effective** - Serverless backend with minimal hosting costs
+- **Scalability** - Supabase handles database scaling automatically
+- **Fast Development** - Quick iterations without build processes
+
+#### 1.2 Design Principles
+- **Progressive Enhancement** - Core functionality works without JavaScript
+- **Responsive Design** - Mobile-first approach
+- **Separation of Concerns** - HTML for structure, CSS for styling, JS for behavior
+- **Modular Code** - Reusable functions and components
+- **Security First** - Client-side validation + server-side verification
+
+---
+
+### 2. Frontend Design
+
+#### 2.1 Technology Stack
+- **HTML5** - Semantic markup
+- **CSS3** - Styling with Flexbox/Grid
+- **Vanilla JavaScript** - No frameworks, pure JS
+- **Supabase JS Client** - Database interaction from frontend
+
+
 
 ## Testing
 
-Testing done on software : detailed + summarized results
+### 1. Testing Overview
+
+GoTravel is currently in the development phase. Testing has been conducted on completed modules and prototypes to validate core functionality and design decisions.
+
+---
+
+### 2. Completed Tests
+
+#### 2.1 Authentication System
+| Test Case | Expected Result | Status |
+|-----------|----------------|--------|
+| User Registration (Supabase) | Account created successfully | ✅ Pass |
+| Login functionality | User authenticated, token generated | ✅ Pass |
+| Logout functionality | Session cleared | ✅ Pass |
+| Password validation | Weak passwords rejected | ❌ Fail (yet) |
+
+#### 2.2 Database Operations
+| Test Case | Expected Result | Status |
+|-----------|----------------|--------|
+| Insert data into Supabase | Data saved correctly | ✅ Pass |
+| Retrieve data from tables | Data fetched successfully | ✅ Pass |
+| Update existing records | Changes reflected in database | ✅ Pass |
+| Delete records | Records removed properly | ✅ Pass |
+
+#### 2.3 Frontend Components
+| Test Case | Expected Result | Status |
+|-----------|----------------|--------|
+| Responsive layout (mobile) | Elements adapt to screen size | ✅ Pass |
+| Form validation | Invalid inputs show errors |❌ Fail (yet)  |
+| Navigation menu | Links work correctly | ✅ Pass |
+| CSS styling consistency | Design matches mockups | ✅ Pass |
+
+#### 2.4 AI Integration (Google Apps Script)
+| Test Case | Expected Result | Status |
+|-----------|----------------|--------|
+| API connection test | Script responds successfully | ✅ Pass |
+| Send request to OpenAI | Response received | ✅ Pass |
+| Handle API errors | Error messages returned | ✅ Pass |
+
+---
+
+### 3. Browser Compatibility
+
+Tested on available browsers:
+
+| Browser | Status |
+|---------|--------|
+| Chrome | ✅ Working |
+| Firefox | ✅ Working |
+| Edge | ✅ Working |
+
+---
+
+#### Current Status
+✅ Database connectivity functional  
+✅ Authentication system working  
+✅ Basic UI components responsive  
+✅ AI integration tested successfully  
+⏳ Full feature testing in progress  
+
+#### Next Steps
+- Complete remaining page development
+- Implement full booking workflow
+- Conduct comprehensive user testing
+- Perform security audits
+- Test with real user data
 
 ## Conclusion
 
-What was achieved, future developments, commercialization plans
+### What Was Achieved
 
+GoTravel successfully addresses the pain point of chaotic travel planning by consolidating the entire process into one intelligent platform. We have developed:
+
+- A functional three-tier architecture with HTML/CSS/JS frontend and Supabase backend
+- AI-powered recommendation engine using Google Apps Script and OpenAI
+- User authentication and role-based dashboards (Traveler & Business)
+- Core database structure for destinations, hotels, transport, and bookings
+- Responsive web interface with modern UI/UX design
+
+The project demonstrates the feasibility of creating a smart travel planning solution that saves users time and reduces decision fatigue.
 ## Links
 
 - [Project Repository](https://github.com/cepdnaclk/{{ page.repository-name }}){:target="_blank"}
