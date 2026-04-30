@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoTravel | Premium Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/index_style.css">
+</head>
+<body>
+
+    <div id="intro-screen">
+        <div class="reveal-text">GoTravel</div>
+    </div>
+
+    <div id="home-screen" style="opacity: 0; transition: opacity 1.5s; min-height: 100%; display: flex; flex-direction: column;">
+        <div class="bg-container">
+            <div id="bg1" class="bg-layer active"></div>
+            <div id="bg2" class="bg-layer"></div>
+        </div>
+        <div class="overlay"></div>
+
+        <header>
+            <div class="info-panel">
+                <canvas id="weather-canvas"></canvas>
+                <div class="time-section">
+                    <span id="time" class="time-text">00:00</span>
+                    <span id="date" class="date-text">JAN 01</span>
+                </div>
+                <div class="weather-section">
+                    <div class="weather-main" style="display: flex; align-items: center; gap: 8px;">
+                        <i id="w-icon" class="fas fa-sun"></i>
+                        <span id="temp">--°C</span>
+                    </div>
+                    <span id="location-name">Detecting...</span>
+                </div>
+            </div>
+
+            <div class="logo-container">
+                <img src="src/images/GoTravels.png" alt="GoTravel Logo" onerror="this.style.display='none'">
+            </div>
+            <a href="frontend/auth.html" class="auth-btn">Account</a>
+        </header>
+
+        <div class="hero-section" id="hero">
+            <h1 class="hero-title">GoTravel</h1>
+            <p class="hero-description">The World Awaits You</p>
+        </div>
+
+        <nav class="main-nav">
+            <a href="frontend/places.html" class="nav-card"><i class="fas fa-mountain-sun"></i><span>Places</span></a>
+            
+            <div class="nav-card" onclick="toggleTransport(this)">
+                <i class="fas fa-route"></i><span>Transport</span>
+                <div class="transport-options" id="transportMenu">
+                    <a href="frontend/cabs.html" class="sub-btn"><i class="fas fa-taxi"></i><span>Cabs</span></a>
+                    <a href="frontend/buses.html" class="sub-btn"><i class="fas fa-bus"></i><span>Buses</span></a>
+                </div>
+            </div>
+
+            <a href="frontend/hotels.html" class="nav-card"><i class="fas fa-hotel"></i><span>Hotels</span></a>
+            <a href="frontend/guides.html" class="nav-card"><i class="fas fa-user-check"></i><span>Guides</span></a>
+            <a href="frontend/restaurants.html" class="nav-card"><i class="fas fa-utensils"></i><span>Dining</span></a>
+        </nav>
+
+        <footer>
+            <div class="footer-left">
+                <span><i class="fas fa-envelope" style="color:var(--accent)"></i> gotravel.eng.pdn@gmail.com</span>
+                <span><i class="fas fa-phone" style="color:var(--accent)"></i> +94 71 357 4985</span>
+            </div>
+            <div class="footer-center">
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                </div>
+                <p style="font-size: 0.6rem; opacity: 0.5; letter-spacing: 2px;">EXPLORE THE UNKNOWN</p>
+            </div>
+            <div class="footer-right">
+                <p>&copy; 2024 GoTravel Experience</p>
+                <p>Powered by <span class="shadow-coders">Shadow Coders</span></p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="backend/index_script.js"></script>
+</body>
+</html>

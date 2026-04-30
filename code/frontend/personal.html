@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoTravel | Authentication Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/personal_style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript"> (function() { emailjs.init("0snPOI_S_7ftRX9BK"); })(); </script>
+</head>
+<body>
+
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-card confirm-card">
+        <div style="font-size: 3rem; color: #ff4d4d; margin-bottom: 20px;">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <p class="confirm-msg">Abandon this journey?</p>
+        <div class="confirm-actions">
+            <button id="confirmOk" class="confirm-btn btn-delete-final">Delete</button>
+            <button id="confirmCancel" class="confirm-btn btn-keep">Cancel</button>
+        </div>
+    </div>
+</div>
+
+    <div id="detailsModal" class="modal-overlay">
+        <div class="modal-card">
+            <i class="fas fa-times close-modal" onclick="closeTripDetails()"></i>
+            <h2 id="modalTitle" style="color: var(--neon-primary); margin-bottom: 25px; border-bottom: 2px solid var(--neon-primary); padding-bottom: 10px;">Trip Details</h2>
+            
+            <div class="detail-row">
+                <span class="detail-label"><i class="fas fa-map-marker-alt"></i> Destination</span>
+                <span id="det-dest" class="detail-val"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label"><i class="fas fa-calendar-day"></i> Travel Date</span>
+                <span id="det-date" class="detail-val"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label"><i class="fas fa-wallet"></i> Budget</span>
+                <span id="det-budget" class="detail-val"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label"><i class="fas fa-clock"></i> Duration</span>
+                <span id="det-days" class="detail-val"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label"><i class="fas fa-user-tie"></i> Tour Guide</span>
+                <span id="det-guide" class="detail-val" style="color: var(--neon-primary);"></span>
+            </div>
+            <button class="plan-btn" style="margin-top: 30px;" onclick="closeTripDetails()">Close Preview</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-area">
+                <img src="../src/images/GoTravels.png" alt="GoTravel" class="logo-img">
+                <span>GoTravel</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="../index.html" class="nav-item">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <div id="nav-trips" class="nav-item active" onclick="showSection('trips-section')">
+                    <i class="fas fa-suitcase"></i> My Trips
+                </div>
+                <div id="nav-planner" class="nav-item" onclick="showSection('planner-section')">
+                    <i class="fas fa-map-marked-alt"></i> Trip Planner
+                </div>
+
+                <div class="expand-section">
+                    <div class="plus-trigger" onclick="toggleMenu('services-menu')">
+                        <span>Explore Services</span>
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <div class="sub-menu" id="services-menu">
+                        <a href="places.html" class="sub-item"><i class="fas fa-map-marked-alt"></i> Destinations</a>
+                        <a href="hotels.html" class="sub-item"><i class="fas fa-hotel"></i> Accommodations</a>
+                        <a href="restaurants.html" class="sub-item"><i class="fas fa-utensils"></i> Culinary Experiences</a>
+                        <a href="guides.html" class="sub-item"><i class="fas fa-user-tie"></i> Professional Tour Guiding</a>
+
+                        <div class="plus-trigger" onclick="toggleMenu('fleet-menu')" style="font-size: 0.85rem; padding: 10px 15px;">
+                            <span><i class="fas fa-route" style="margin-right: 8px;"></i> Transportation</span>
+                            <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                        </div>
+                        <div class="sub-menu nested-menu" id="fleet-menu">
+                            <a href="cabs.html" class="sub-item"><i class="fas fa-car-side"></i> Executive Private Cab</a>
+                            <a href="buses.html" class="sub-item"><i class="fas fa-bus-alt"></i> Public Transit Services</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 20px; opacity: 0.6;">
+                &copy; 2026 GoTravel Experience
+            </div>
+        </aside>
+
+        <main class="main-container">
+            <div class="header-row">
+                <h1 id="page-title">My Trips</h1>
+                <div style="position: relative;">
+                    <img id="userAvatar" src="" alt="User Avatar" style="width: 48px; height: 48px; border-radius: 50%; border: 1 solid var(--neon-secondary); cursor: pointer;">
+                    
+                    <div id="profilePopup" class="profile-popup">
+                        <div id="popupInitial" class="popup-avatar-circle">S</div>
+                        <div id="popupName" class="popup-name">Name</div>
+                        <div id="popupEmail" class="popup-email">email@example.com</div>
+                        <button class="logout-btn" onclick="logoutUser()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="successModal" class="modal-overlay">
+                <div class="modal-card" style="text-align: center; max-width: 350px;">
+                    <div style="font-size: 3rem; color: var(--neon-primary); margin-bottom: 20px;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 style="color: #fff; margin-bottom: 10px;">Success!</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 25px;">Your trip blueprint has been saved to your dashboard.</p>
+                    <button class="plan-btn" style="margin-top: 0;" onclick="closeSuccessModal()">Great!</button>
+                </div>
+            </div>
+
+            <div id="trips-section">
+                <div class="trip-tabs">
+                    <button class="tab-btn active" onclick="openTab(event, 'ongoing')">Active Explorations</button>
+                    <button class="tab-btn" onclick="openTab(event, 'past')">Travel History</button>
+                    <button class="tab-btn" onclick="openTab(event, 'cancelled')">Cancelled Bookings</button>
+                </div>
+
+                <div id="ongoing" class="tab-content active">
+                    <div class="placeholder-card" id="ongoing-placeholder">
+                        <i class="fas fa-rocket"></i>
+                        <p>Your scheduled trips and ongoing explorations will appear here.</p>
+                    </div>
+                    <div id="saved-trips-container"></div>
+                </div>
+
+                <div id="past" class="tab-content">
+                    <div class="placeholder-card" id="past-placeholder">
+                        <i class="fas fa-history"></i>
+                        <p>Your past travel history will be listed here.</p>
+                    </div>
+                    <div id="history-trips-container"></div>
+                </div>
+
+                <div id="cancelled" class="tab-content">
+                    <div class="placeholder-card">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>Cancelled bookings will appear here.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="planner-section" style="display: none;">
+                <div class="planner-form-container">
+                    <h2 style="color: var(--neon-primary); margin-bottom: 10px;"><i class="fas fa-compass"></i> Plan Your Next Adventure</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 20px;">Fill in the details to blueprint your future journey.</p>
+                    
+                    <div class="planner-grid">
+                        <div class="input-group">
+                            <label>Adventure Title</label>
+                            <input type="text" id="trip-title"  class="glass-input" placeholder="e.g. Summer Vacation 2026" autocomplete="off" >
+                            
+                        </div>
+                        <div class="input-group">
+                            <label>Destination</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="trip-destination" class="glass-input" placeholder="Select from destinations..." readonly>
+                                <button type="button" class="glass-btn" onclick="goToPlaces()" style="padding: 0 15px; background: var(--neon-secondary); border: none; border-radius: 12px; color: white; cursor: pointer;">
+                                    <i class="fas fa-search-location"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Target Date</label>
+                            <div class="date-type-tabs">
+                                <div id="tab-single" class="date-tab active" onclick="setDateMode('single')">Specific Date</div>
+                                <div id="tab-range" class="date-tab" onclick="setDateMode('range')">Flexible Range</div>
+                            </div>
+                            <div id="input-single">
+                                <input type="date" id="trip-date" class="glass-input">
+                            </div>
+                            <div id="input-range" style="display: none; gap: 10px;">
+                                <input type="date" id="trip-date-start" class="glass-input" title="Arrival Date">
+                                <input type="date" id="trip-date-end" class="glass-input" title="Departure Date">
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Estimated Budget</label>
+                            <div style="display: flex; gap: 10px;">
+                                <select id="trip-currency" class="glass-select" style="width: 80px; flex-shrink: 0;">
+                                    <option value="LKR">LKR</option>
+                                    <option value="USD">USD</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="GBP">GBP</option>
+                                </select>
+                                <input type="number" id="trip-budget-amount" class="glass-input" style="flex: 1; min-width: 0;" placeholder="Amount" autocomplete="off" >
+                               
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Number of Days</label>
+                            <input type="number" id="trip-days" class="glass-input" placeholder="e.g. 5"  autocomplete="off">
+                            
+                        </div>
+                    </div>
+
+                    <div class="booking-section">
+                        <h3 style="color: var(--neon-primary); margin-bottom: 20px; font-size: 1.1rem;"><i class="fas fa-concierge-bell"></i> Quick Bookings</h3>
+                        <div class="booking-grid">
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <div class="booking-btn" onclick="toggleTransport()">
+                                    <i class="fas fa-route"></i>
+                                    <span>Transportation</span>
+                                </div>
+                                <div id="transportOptions" class="transport-options">
+                                    <a href="buses.html" class="booking-btn" style="padding: 10px; font-size: 0.8rem;">
+                                        <i class="fas fa-bus"></i> Buses
+                                    </a>
+                                    <a href="cabs.html" class="booking-btn" style="padding: 10px; font-size: 0.8rem;">
+                                        <i class="fas fa-car"></i> Cabs
+                                    </a>
+                                </div>
+                            </div>
+                            <a href="hotels.html" class="booking-btn">
+                                <i class="fas fa-hotel"></i>
+                                <span>Hotels</span>
+                            </a>
+                            <a onclick="goToGuides()" class="booking-btn" id="guide-booking-btn" style="cursor: pointer;">
+                                <i class="fas fa-user-tie"></i>
+                                <span id="guide-btn-text">Guides</span>
+                            </a>
+                            <a href="restaurants.html" class="booking-btn">
+                                <i class="fas fa-utensils"></i>
+                                <span>Restaurants</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <button class="plan-btn" onclick="saveTrip()">Save Trip Blueprint</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="../backend/personal_script.js"></script>
+</body>
+</html>
