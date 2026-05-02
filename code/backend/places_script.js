@@ -1,4 +1,4 @@
-// ⚠️ IMPORTANT: Replace this with YOUR Google Apps Script URL
+
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHltBHkWqBNrk67zieDRl9xr1hscq3ZlnJu7aHv6njFxhL0vt6tyWg0hJYeTxLz5liPA/exec';
 
 // Store selected destinations
@@ -61,7 +61,17 @@ function updateSelectButton() {
         btn.classList.remove('selected');
     }
 }
-
+window.onload = async function() {
+    const { data: { user }, error } = await _supabase.auth.getUser();
+    if (user) {
+        const fName = user.user_metadata.first_name || "Traveler";
+        const lName = user.user_metadata.last_name || "";
+        const email = user.email;
+        updateProfileAvatar(fName, lName, email);
+    } else {
+        window.location.href = 'auth.html'; 
+    }
+}
 // Show selected destinations modal
 function showSelectedModal() {
     const modal = document.getElementById('selectedModal');
@@ -214,7 +224,7 @@ async function loadDestination(destination) {
 
     const bg = document.getElementById('destImageBg');
     bg.style.backgroundImage = aiData.imageUrl ? `url(${aiData.imageUrl})` : 'none';
-
+    document.querySelector('.gradient-bg').style.backgroundImage = aiData.imageUrl ? `url(${aiData.imageUrl})` : 'none';
     updateSelectButton();
 
     document.getElementById('loader').style.display = 'none';
