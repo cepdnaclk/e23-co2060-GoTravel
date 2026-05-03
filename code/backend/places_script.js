@@ -1,38 +1,38 @@
-
+//google script URL for fetching AI-generated destination info
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHltBHkWqBNrk67zieDRl9xr1hscq3ZlnJu7aHv6njFxhL0vt6tyWg0hJYeTxLz5liPA/exec';
 
 // Store selected destinations
 let selectedDestinations = JSON.parse(localStorage.getItem('selectedDestinations') || '[]');
-let currentDestination = null;
+let currentDestination = null; // Update profile avatar with user initials
 
-// Update badge count
+// Update badge count and visibility
 function updateBadge() {
-    const badge = document.getElementById('selectedBadge');
+    const badge = document.getElementById('selectedBadge');// Update count
     const count = document.getElementById('badgeCount');
-    count.textContent = selectedDestinations.length;
+    count.textContent = selectedDestinations.length; // Show/hide badge
 
-    if (selectedDestinations.length > 0) {
-        badge.style.display = 'flex';
+    if (selectedDestinations.length > 0) {// Show badge if there are selected destinations
+        badge.style.display = 'flex'; // Show badge
     } else {
-        badge.style.display = 'none';
+        badge.style.display = 'none';// Hide badge if no destinations are selected
     }
 }
 
 // Check if destination is already selected
 function isSelected(destination) {
-    return selectedDestinations.some(d => d.name === destination);
+    return selectedDestinations.some(d => d.name === destination); // Check if destination is in selected list
 }
 
-// Toggle destination selection
+// Toggle destination selection means adding or removing from selectedDestinations and updating localStorage and badge
 function toggleSelection() {
-    if (!currentDestination) return;
+    if (!currentDestination) return; // Safety check
 
     const btn = document.getElementById('selectDestBtn');
 
     if (isSelected(currentDestination.name)) {
         selectedDestinations = selectedDestinations.filter(d => d.name !== currentDestination.name);
         btn.innerHTML = '<i class="fas fa-plus"></i><span>Select Destination</span>';
-        btn.classList.remove('selected');
+        btn.classList.remove('selected'); // Update button state to unselected
     } else {
         selectedDestinations.push({
             name: currentDestination.name,
@@ -99,25 +99,25 @@ function showSelectedModal() {
         `).join('');
     }
 
-    modal.style.display = 'block';
+    modal.style.display = 'block'; // Show modal
 }
 
 // Remove destination
 function removeDestination(name) {
-    selectedDestinations = selectedDestinations.filter(d => d.name !== name);
-    localStorage.setItem('selectedDestinations', JSON.stringify(selectedDestinations));
+    selectedDestinations = selectedDestinations.filter(d => d.name !== name);// Update localStorage and badge
+    localStorage.setItem('selectedDestinations', JSON.stringify(selectedDestinations));// Refresh modal content
     updateBadge();
     showSelectedModal();
     updateSelectButton();
 }
-
+// Fetch AI-generated info from Google Script with caching and fallback
 async function getAIInfo(destination) {
     const cache = JSON.parse(localStorage.getItem('travelCache') || '{}');
     if (cache[destination]) {
         console.log('Using cached data for', destination);
         return cache[destination];
     }
-
+// If not in cache, fetch from Google Script
     try {
         const response = await fetch(`${GOOGLE_SCRIPT_URL}?destination=${encodeURIComponent(destination)}`);
 
@@ -126,7 +126,7 @@ async function getAIInfo(destination) {
         }
 
         const data = await response.json();
-
+// If Google Script returns an error with fallback data, use it
         if (data.error && data.fallback) {
             console.log('Using fallback data:', data.error);
             return data.fallback;
@@ -142,7 +142,7 @@ async function getAIInfo(destination) {
         return getLocalFallback(destination);
     }
 }
-
+// Local fallback data for popular destinations
 function getLocalFallback(destination) {
     const fallbacks = {
         "Sigiriya": {
@@ -179,7 +179,7 @@ function getLocalFallback(destination) {
             imageUrl: "https://images.unsplash.com/photo-1564507592333-cb6f2f40d3b9?auto=format&fit=crop&q=80"
         }
     };
-
+// Return fallback data if available, otherwise return a generic fallback
     return fallbacks[destination] || {
         description: `${destination} is a beautiful destination in Sri Lanka.`,
         history: "Rich cultural and natural history.",
@@ -192,7 +192,7 @@ function getLocalFallback(destination) {
         imageUrl: "https://images.unsplash.com/photo-1564507592333-cb6f2f40d3b9?auto=format&fit=crop&q=80"
     };
 }
-
+// Load destination info and update UI
 async function loadDestination(destination) {
     document.getElementById('loader').style.display = 'block';
     document.getElementById('destinationSection').style.display = 'none';
@@ -204,7 +204,7 @@ async function loadDestination(destination) {
         rating: aiData.rating || '4.5',
         imageUrl: aiData.imageUrl
     };
-
+// Update UI with AI data
     document.getElementById('destName').textContent = destination.toUpperCase();
     document.getElementById('rating').textContent = aiData.rating || '4.5';
     document.getElementById('description').textContent = aiData.description || 'No description available.';
@@ -221,7 +221,7 @@ async function loadDestination(destination) {
         li.innerHTML = `<i class="fas fa-check-circle"></i> ${item}`;
         list.appendChild(li);
     });
-
+// Set background image with fallback
     const bg = document.getElementById('destImageBg');
     bg.style.backgroundImage = aiData.imageUrl ? `url(${aiData.imageUrl})` : 'none';
     document.querySelector('.gradient-bg').style.backgroundImage = aiData.imageUrl ? `url(${aiData.imageUrl})` : 'none';
@@ -234,13 +234,13 @@ async function loadDestination(destination) {
         document.getElementById('destinationSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 150);
 }
-
+// Handle planner selection logic and navigation to personal planner page
 function handlePlannerSelection() {
     if (!currentDestination) {
         alert("Please search and load a destination first!");
         return;
     }
-
+// Check if user is in planning mode
     const isPlanning = localStorage.getItem('isSelectingDestination');
 
     if (isPlanning === 'true') {
@@ -252,7 +252,7 @@ function handlePlannerSelection() {
         toggleSelection();
     }
 }
-
+// Update clock and date
 function updateClock() {
     const n = new Date();
     document.getElementById('time').textContent = n.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -264,13 +264,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('closeModal').addEventListener('click', () => {
         document.getElementById('selectedModal').style.display = 'none';
     });
-
+// Close modal when clicking outside content
     document.getElementById('selectedModal').addEventListener('click', (e) => {
         if (e.target.id === 'selectedModal') {
             document.getElementById('selectedModal').style.display = 'none';
         }
     });
-
+// Attach event listeners
     document.getElementById('selectedBadge').addEventListener('click', showSelectedModal);
     document.getElementById('selectDestBtn').addEventListener('click', handlePlannerSelection);
 
@@ -279,18 +279,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (q) loadDestination(q);
         else alert('Please enter a destination name');
     });
-
+// Allow pressing Enter to search
     document.getElementById('searchInput').addEventListener('keypress', e => {
         if (e.key === 'Enter') document.getElementById('searchBtn').click();
     });
-
+// Attach click listeners to suggestion cards
     document.querySelectorAll('.suggestion-card').forEach(card => {
         card.addEventListener('click', () => {
             document.getElementById('searchInput').value = card.querySelector('h3').textContent;
             loadDestination(card.getAttribute('data-destination'));
         });
     });
-
+// Initialize clock and badge
     setInterval(updateClock, 1000);
     updateClock();
     setTimeout(() => document.getElementById('searchInput').focus(), 600);
