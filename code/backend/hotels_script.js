@@ -15,10 +15,36 @@ let hotels = [];
 let favoritesOnly = false; 
 const wishlistBtn = document.getElementById('wishlistFilter');
 
+function renderSkeletons() {
+    const container = document.getElementById('hotelCardsContainer');
+    if (!container) return;
+    
+    container.innerHTML = ""; // Clear existing grid contents
+
+    // Generate 6 placeholder cards to fill up the initial screen grid
+    for (let i = 0; i < 6; i++) {
+        const skeletonCard = document.createElement('div');
+        skeletonCard.className = 'skeleton-card';
+
+        skeletonCard.innerHTML = `
+            <div class="skeleton-box skeleton-img"></div>
+            <div class="skeleton-info">
+                <div class="skeleton-box skeleton-title"></div>
+                <div class="skeleton-box skeleton-text"></div>
+                <div class="skeleton-box skeleton-btn"></div>
+            </div>
+        `;
+        container.appendChild(skeletonCard);
+    }
+}
+
 // =========================================
 // 2. Fetch & Display Logic 
 // =========================================
 async function fetchHotels() {
+
+    renderSkeletons();
+
     const { data, error } = await supabaseClient
         .from('services')
         .select('*')
@@ -26,6 +52,9 @@ async function fetchHotels() {
 
     if (error) {
         console.error('Error fetching hotels:', error);
+        // Clear skeletons and show error message if the network fails
+        const container = document.getElementById('hotelCardsContainer');
+        if (container) container.innerHTML = `<p style="color: red;">Failed to load hotels. Please try again later.</p>`;
         return;
     }
     
@@ -328,6 +357,41 @@ searchInput.addEventListener('input', function () {
 function closeSearchAlert() {
     document.getElementById('searchAlertModal').style.display = "none";
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const mobileToggleBtn = document.getElementById('mobileFilterToggle');
+    const sidebarFilterPanel = document.getElementById('sidebarFilter');
+    const closeSidebarBtn = document.getElementById('closeSidebar');
+
+    if (mobileToggleBtn && sidebarFilterPanel && closeSidebarBtn) {
+        // Slide open the drawer panel
+        mobileToggleBtn.addEventListener('click', () => {
+            sidebarFilterPanel.classList.add('open');
+        });
+
+        // Slide close panel via 'X' element click
+        closeSidebarBtn.addEventListener('click', () => {
+            sidebarFilterPanel.classList.remove('open');
+        });
+
+        // Clean UI management: automatically close sidebar if user selects options on mobile
+        const elementsToDismissSidebar = sidebarFilterPanel.querySelectorAll('select, button');
+        elementsToDismissSidebar.forEach(element => {
+            element.addEventListener('change', () => {
+                // Keep panel open for adjustments on sliders, close for distinct dropdown clicks
+                if (element.id !== 'priceFilter') {
+                    sidebarFilterPanel.classList.remove('open');
+                }
+            });
+            // Specific execution for wishlist button click dismiss
+            if (element.id === 'wishlistFilter' || element.id === 'resetFilters') {
+                element.addEventListener('click', () => {
+                    sidebarFilterPanel.classList.remove('open');
+                });
+            }
+        });
+    }
+});
 
 // =========================================
 // 5. Global Cleanup and Initialization
