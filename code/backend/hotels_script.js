@@ -1,446 +1,519 @@
-// =========================================
-// 1. Supabase Connection Setup 
-// =========================================
+//GoTravel — Hotels Page Script
+   
 const supabaseUrl = 'https://cdcolkoavowjjymzdzud.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkY29sa29hdm93amp5bXpkenVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0MDI2NjQsImV4cCI6MjA4Mzk3ODY2NH0.JPzj9fI1pKpPbPxyGqsemjcwpKiu0h046H7aBSURnpM';
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-const cityFilter = document.getElementById('cityFilter');
-const priceFilter = document.getElementById('priceFilter');
-const priceValueLabel = document.getElementById('priceValue');
-const resetBtn = document.getElementById('resetFilters');
-const sortFilter = document.getElementById('sortFilter');
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Global variable to hold our data
-let hotels = [];
-let favoritesOnly = false; 
-const wishlistBtn = document.getElementById('wishlistFilter');
+const WISHLIST_KEY = "gotravel_hotel_wishlist";
 
-function renderSkeletons() {
-    const container = document.getElementById('hotelCardsContainer');
-    if (!container) return;
-    
-    container.innerHTML = ""; // Clear existing grid contents
+let allHotels = [];      // every hotel_service row (+ its rooms, + computed minPrice)
+let currentHotels = [];  // whatever is currently on screen after filters/search
 
-    // Generate 6 placeholder cards to fill up the initial screen grid
-    for (let i = 0; i < 6; i++) {
-        const skeletonCard = document.createElement('div');
-        skeletonCard.className = 'skeleton-card';
 
-        skeletonCard.innerHTML = `
-            <div class="skeleton-box skeleton-img"></div>
-            <div class="skeleton-info">
-                <div class="skeleton-box skeleton-title"></div>
-                <div class="skeleton-box skeleton-text"></div>
-                <div class="skeleton-box skeleton-btn"></div>
-            </div>
-        `;
-        container.appendChild(skeletonCard);
-    }
+//Wishlist (stored locally per-browser)
+   
+function getWishlist() {
+  try {
+    return JSON.parse(localStorage.getItem(WISHLIST_KEY)) || [];
+  } catch {
+    return [];
+  }
 }
 
-// =========================================
-// 2. Fetch & Display Logic 
-// =========================================
-async function fetchHotels() {
-
-    renderSkeletons();
-
-    const { data, error } = await supabaseClient
-        .from('services')
-        .select('*')
-        .eq('service_type', 'hotel');
-
-    if (error) {
-        console.error('Error fetching hotels:', error);
-        // Clear skeletons and show error message if the network fails
-        const container = document.getElementById('hotelCardsContainer');
-        if (container) container.innerHTML = `<p style="color: red;">Failed to load hotels. Please try again later.</p>`;
-        return;
-    }
-    
-    // Save the data to our global list
-    hotels = data; 
-    displayHotels(data);
+function saveWishlist(list) {
+  localStorage.setItem(WISHLIST_KEY, JSON.stringify(list));
 }
+
+function isWishlisted(id) {
+  return getWishlist().includes(String(id));
+}
+
+function toggleWishlist(id) {
+  id = String(id);
+  const list = getWishlist();
+  const idx = list.indexOf(id);
+  if (idx === -1) list.push(id);
+  else list.splice(idx, 1);
+  saveWishlist(list);
+  return list.includes(id);
+}
+
+//Small helpers
+function escapeHtml(value) {
+  const div = document.createElement("div");
+  div.textContent = value ?? "";
+  return div.innerHTML;
+}
+
+function formatPrice(value) {
+  const num = Number(value) || 0;
+  return `LKR ${num.toLocaleString("en-LK")}`;
+}
+
+function toArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+// Loading hotels from Supabase
+async function loadHotels() {
+  showSkeletons();
+
+  try {
+    const { data: hotels, error: hotelsError } = await supabaseClient
+      .from("hotel_service")
+      .select("*");
+
+    if (hotelsError) throw hotelsError;
+
+    const { data: rooms, error: roomsError } = await supabaseClient
+      .from("hotel_rooms")
+      .select("*");
+
+    if (roomsError) throw roomsError;
+
+    allHotels = (hotels || []).map(hotel => {
+      const hotelRooms = (rooms || []).filter(r => r.service_id === hotel.id);
+      const prices = hotelRooms
+        .map(r => Number(r.price))
+        .filter(p => !isNaN(p) && p > 0);
+      const minPrice = prices.length ? Math.min(...prices) : 0;
+
+      return { ...hotel, rooms: hotelRooms, minPrice };
+    });
+
+    populateCityFilter(allHotels);
+    applyFilters();
+  } catch (error) {
+    console.error("Failed to load hotels:", error);
+    document.getElementById("hotelCardsContainer").innerHTML =
+      `<p style="text-align:center;width:100%;">Couldn't load hotels right now. Please try again later.</p>`;
+  }
+}
+
+// Keep the "City" dropdown in sync with whatever cities actually exist,
+// without clobbering the hardcoded options already in the HTML.
+function populateCityFilter(hotels) {
+  const select = document.getElementById("cityFilter");
+  if (!select) return;
+
+  const existing = new Set(
+    Array.from(select.options).map(opt => opt.value.toLowerCase())
+  );
+
+  const cities = [...new Set(hotels.map(h => h.city).filter(Boolean))];
+
+  cities.forEach(city => {
+    if (!existing.has(city.toLowerCase())) {
+      const option = document.createElement("option");
+      option.value = city;
+      option.textContent = city;
+      select.appendChild(option);
+    }
+  });
+}
+
+// Rendering
+  
+function showSkeletons(count = 6) {
+  const container = document.getElementById("hotelCardsContainer");
+  container.innerHTML = Array.from({ length: count })
+    .map(() => `
+      <div class="skeleton-card">
+        <div class="skeleton-box skeleton-img"></div>
+        <div class="skeleton-info">
+          <div class="skeleton-box skeleton-title"></div>
+          <div class="skeleton-box skeleton-text"></div>
+          <div class="skeleton-box skeleton-btn"></div>
+        </div>
+      </div>
+    `)
+    .join("");
+}
+
+function renderHotels(list) {
+  const container = document.getElementById("hotelCardsContainer");
+
+  if (!list.length) {
+    container.innerHTML = `<p style="text-align:center;width:100%;">No hotels match your filters.</p>`;
+    return;
+  }
+
+  container.innerHTML = list.map(hotel => {
+    const photos = toArray(hotel.photo_urls);
+    const photo = photos[0] || "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg";
+    const liked = isWishlisted(hotel.id);
+    const ratingText = hotel.star_rating ? ` &middot; ${escapeHtml(hotel.star_rating)}&#9733;` : "";
+
+    return `
+      <div class="hotel-card" data-id="${hotel.id}">
+        <span class="wishlist-btn ${liked ? "active" : ""}" data-id="${hotel.id}">
+          <ion-icon name="${liked ? "heart" : "heart-outline"}"></ion-icon>
+        </span>
+        <img src="${photo}" alt="${escapeHtml(hotel.service_name)}" class="hotel-img">
+        <div class="hotel-info">
+          <h3>${escapeHtml(hotel.service_name)}</h3>
+          <p>${escapeHtml(hotel.city || "")}${hotel.property_type ? " &middot; " + escapeHtml(hotel.property_type) : ""}${ratingText}</p>
+          <p class="hotel-price">${hotel.minPrice ? "From " + formatPrice(hotel.minPrice) : "Contact for price"}</p>
+          <button type="button" class="btn-explore view-details-btn" data-id="${hotel.id}">View Details</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  container.querySelectorAll(".view-details-btn").forEach(btn => {
+    btn.addEventListener("click", () => openDetails(btn.dataset.id));
+  });
+
+  container.querySelectorAll(".wishlist-btn").forEach(btn => {
+    btn.addEventListener("click", event => {
+      event.stopPropagation();
+      const id = btn.dataset.id;
+      const liked = toggleWishlist(id);
+
+      btn.classList.toggle("active", liked);
+      const icon = btn.querySelector("ion-icon");
+      if (icon) icon.setAttribute("name", liked ? "heart" : "heart-outline");
+
+      const wishlistBtn = document.getElementById("wishlistFilter");
+      if (wishlistBtn && wishlistBtn.classList.contains("active-filter")) {
+        applyFilters();
+      }
+    });
+  });
+}
+
+// Filtering / sorting / searching
 
 function applyFilters() {
-    const selectedCity = cityFilter.value;
-    const maxPrice = parseInt(priceFilter.value);
-    
-    // Get the current wishlist IDs from localStorage
-    const wishlist = JSON.parse(localStorage.getItem('hotelWishlist')) || [];
+  const city = document.getElementById("cityFilter").value;
+  const sort = document.getElementById("sortFilter").value;
+  const maxPrice = Number(document.getElementById("priceFilter").value);
+  const wishlistOnly = document.getElementById("wishlistFilter").classList.contains("active-filter");
+  const searchTerm = document.getElementById("hotelSearch").value.trim().toLowerCase();
 
-    // Update the label text
-    priceValueLabel.innerText = `LKR ${maxPrice.toLocaleString()}`;
+  let list = [...allHotels];
 
-    let filtered = hotels.filter(hotel => {
-        const matchesCity = (selectedCity === 'all' || hotel.city === selectedCity);
-        const hotelPrice = parseInt(hotel.price) || 0;
-        const matchesPrice = hotelPrice <= maxPrice;
-        
-        
-        const matchesWishlist = favoritesOnly ? wishlist.includes(String(hotel.id)) : true;
+  if (city !== "all") {
+    list = list.filter(h => (h.city || "").toLowerCase() === city.toLowerCase());
+  }
 
-        return matchesCity && matchesPrice && matchesWishlist;
-    });
+  list = list.filter(h => !h.minPrice || h.minPrice <= maxPrice);
 
-    const sortedAndFiltered = sortHotels(filtered);
-    displayHotels(sortedAndFiltered);
-}
-function sortHotels(hotelList) {
-    const sortValue = sortFilter.value;
+  if (wishlistOnly) {
+    list = list.filter(h => isWishlisted(h.id));
+  }
 
-    if (sortValue === 'lowHigh') {
-        return hotelList.sort((a, b) => (parseInt(a.price) || 0) - (parseInt(b.price) || 0));
-    } else if (sortValue === 'highLow') {
-        return hotelList.sort((a, b) => (parseInt(b.price) || 0) - (parseInt(a.price) || 0));
-    }
-
-    return hotelList; // Return as is if "default" is selected
-}
-
-window.onload = async function() {
-    const { data: { user }, error } = await _supabase.auth.getUser();
-    if (user) {
-        const fName = user.user_metadata.first_name || "Traveler";
-        const lName = user.user_metadata.last_name || "";
-        const email = user.email;
-        updateProfileAvatar(fName, lName, email);
-    } else {
-        window.location.href = 'auth.html'; 
-    }
-}
-
-function displayHotels(hotelList) {
-    const container = document.getElementById('hotelCardsContainer');
-    if (!container) return;
-    container.innerHTML = ""; 
-
-    // Get current wishlist from localStorage to check status
-    const wishlist = JSON.parse(localStorage.getItem('hotelWishlist')) || [];
-
-    hotelList.forEach(hotel => {
-        const imageUrl = (hotel.photo_urls && hotel.photo_urls.length > 0) 
-                         ? hotel.photo_urls[0] 
-                         : 'https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg';
-
-        // Check if this specific hotel ID is in our wishlist
-        const isFavorited = wishlist.includes(String(hotel.id));
-
-        const card = document.createElement('div');
-        card.className = 'hotel-card';
-
-        card.innerHTML = `
-            <div class="wishlist-btn ${isFavorited ? 'active' : ''}" onclick="toggleWishlist(event, '${hotel.id}')">
-                <ion-icon name="${isFavorited ? 'heart' : 'heart-outline'}"></ion-icon>
-            </div>
-            <img src="${imageUrl}" class="hotel-img" alt="${hotel.service_name}">
-            <div class="hotel-info">
-                <h3>${hotel.service_name}</h3>
-                <p style="opacity: 0.7; font-size: 0.9rem;">${hotel.city || 'Sri Lanka'}</p>
-                <button class="btn-explore" onclick="visitHotel('${hotel.id}')">View Details</button>
-            </div>
-        `;
-        container.appendChild(card);
-    });
-}
-
-function toggleWishlist(event, hotelId) {
-    // Prevent the click from opening the modal (since the button is inside the card)
-    event.stopPropagation();
-
-    // 1. Get existing wishlist or empty array
-    let wishlist = JSON.parse(localStorage.getItem('hotelWishlist')) || [];
-
-    // 2. Add or Remove the ID
-    const index = wishlist.indexOf(String(hotelId));
-    if (index === -1) {
-        wishlist.push(String(hotelId)); // Save it
-    } else {
-        wishlist.splice(index, 1); // Remove it
-    }
-
-    // 3. Save back to localStorage
-    localStorage.setItem('hotelWishlist', JSON.stringify(wishlist));
-
-    // 4. Update the UI visually without refreshing the whole grid
-    const btn = event.currentTarget;
-    const icon = btn.querySelector('ion-icon');
-    
-    if (wishlist.includes(String(hotelId))) {
-        btn.classList.add('active');
-        icon.setAttribute('name', 'heart');
-    } else {
-        btn.classList.remove('active');
-        icon.setAttribute('name', 'heart-outline');
-    }
-}
-
-function selectHotel(hotelName) {
-    // Save the selection
-    localStorage.setItem('selectedHotelName', hotelName);
-    // Go back to dashboard
-    window.location.href = 'personal.html';
-}
-
-// =========================================
-// 3. Details Modal Logic 
-// =========================================
-async function visitHotel(hotelId) {
-    const hotel = hotels.find(h => String(h.id) == String(hotelId));
-    if (!hotel) { console.error("Hotel not found!"); return; }
-
-    // Define the elements we will need
-    const modal = document.getElementById('detailsModal');
-    const modalHotelName = document.getElementById('modalHotelName');
-    const modalGallery = document.getElementById('modalGallery'); // Ensure this ID exists in hotels.html
-    const modalInfoContainer = document.getElementById('modalInfoContainer'); // Ensure this ID exists
-
-    // 1. Set the Modal Title
-    modalHotelName.innerText = hotel.service_name;
-
-    // 2. Teaser Gallery Logic
-modalGallery.innerHTML = ''; 
-
-const photos = hotel.photo_urls || [];
-const numPhotos = photos.length;
-
-if (numPhotos > 0) {
-    // Take the first 4 photos to show in the preview
-    const teaserPhotos = photos.slice(0, 4); 
-
-    teaserPhotos.forEach((url, index) => {
-        // If there are more than 4 photos total, and we are on the 4th photo (index 3)
-        if (numPhotos > 4 && index === 3) {
-            const seeMoreContainer = document.createElement('div');
-            seeMoreContainer.className = 'see-more-container';
-            seeMoreContainer.onclick = () => openFullGallery(hotelId); 
-
-            seeMoreContainer.innerHTML = `
-                <img src="${url}" alt="More Photos">
-                <div class="see-more-overlay">
-                    <span class="plus-sign">+${numPhotos - 3}</span>
-                </div>
-            `;
-            modalGallery.appendChild(seeMoreContainer);
-        } 
-        else {
-            // Normal Case: Display the image
-            const img = document.createElement('img');
-            img.src = url;
-            img.alt = `${hotel.service_name} teaser`;
-            img.className = 'teaser-item';
-            modalGallery.appendChild(img);
-        }
-    });
-} else {
-    modalGallery.innerHTML = '<p style="opacity:0.6;">No photos available.</p>';
-}
-    
-    // 3. Set Text Info
-    modalInfoContainer.innerHTML = `
-        <div class="modal-info-item">
-            <b>Description</b>
-            <p>${hotel.description || 'No description provided.'}</p>
-        </div>
-        <div class="modal-info-item">
-            <b>Location & Address</b>
-            <p>${hotel.address || 'Address not listed'}, ${hotel.city}</p>
-        </div>
-        <div class="modal-info-item">
-            <b>Contact Number</b>
-            <p>${hotel.contact || 'Not available'}</p>
-        </div>
-        <div class="modal-info-item">
-            <b>Price Range</b>
-            <p>LKR ${hotel.price || 'N/A'}</p>
-        </div>
-    `;
-
-    modalInfoContainer.innerHTML += `
-        <button class="btn-glow" style="width:100%; margin-top:20px;" 
-                onclick="selectHotel('${hotel.service_name}')">
-            Book This Hotel
-        </button>
-    `;
-
-    // 4. Open the primary modal
-    modal.style.display = "block";
-}
-
-// Add this to hotels_script.js
-document.getElementById('hotelSearch').addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const filtered = hotels.filter(h => 
-        h.service_name.toLowerCase().includes(searchTerm) || 
-        h.city.toLowerCase().includes(searchTerm)
+  if (searchTerm) {
+    list = list.filter(h =>
+      (h.service_name || "").toLowerCase().includes(searchTerm) ||
+      (h.city || "").toLowerCase().includes(searchTerm)
     );
-    displayHotels(filtered);
-});
+  }
 
-// Function to close the main details modal
-window.closeDetails = function() {
-    document.getElementById('detailsModal').style.display = "none";
+  if (sort === "lowHigh") list.sort((a, b) => (a.minPrice || 0) - (b.minPrice || 0));
+  if (sort === "highLow") list.sort((a, b) => (b.minPrice || 0) - (a.minPrice || 0));
+
+  currentHotels = list;
+  renderHotels(list);
 }
 
-// =========================================
-// 4. Full Gallery Modal Logic 
-// =========================================
-function openFullGallery(hotelId) {
-    const hotel = hotels.find(h => h.id == hotelId);
-    if (!hotel) return;
+// Details modal (badges + teaser gallery + tabs)
 
-    const fullModal = document.getElementById('fullGalleryModal');
-    const fullGrid = document.getElementById('fullGalleryGrid');
-    const fullTitle = document.getElementById('fullGalleryTitle');
+function openDetails(id) {
+  const hotel = allHotels.find(h => String(h.id) === String(id));
+  if (!hotel) return;
 
-    // 1. Set Title
-    fullTitle.innerText = `${hotel.service_name} - All Photos`;
+  document.getElementById("modalHotelName").textContent = hotel.service_name;
 
-    // 2. Clear old grid and populate with ALL photos
-    fullGrid.innerHTML = '';
-    
-    if (hotel.photo_urls && hotel.photo_urls.length > 0) {
-        hotel.photo_urls.forEach((url) => {
-            const img = document.createElement('img');
-            img.src = url;
-            img.alt = "Hotel Photo Full View";
-            img.className = 'full-gallery-img';
-            fullGrid.appendChild(img);
-        });
+  renderModalBadges(hotel);
+  renderModalGallery(hotel);
+  renderModalTabs(hotel);
+  resetModalTabs();
+
+  const bookBtn = document.getElementById("bookNowBtn");
+  bookBtn.onclick = () => bookNow(hotel.id);
+
+  document.getElementById("detailsModal").style.display = "block";
+}
+window.openDetails = openDetails;
+
+function bookNow(id) {
+  // Came from the trip planner? Send the hotel back instead of booking.
+  if (localStorage.getItem('isSelectingHotel') === 'true') {
+    const hotel = allHotels.find(h => String(h.id) === String(id));
+    if (hotel) localStorage.setItem('selectedHotelName', hotel.service_name);
+    window.location.href = 'personal.html';
+    return;
+  }
+  // Normal visitor: show the coming-soon popup
+  document.getElementById("bookingAlertModal").style.display = "block";
+}
+
+function closeBookingAlert() {
+  document.getElementById("bookingAlertModal").style.display = "none";
+}
+window.closeBookingAlert = closeBookingAlert;
+function renderModalBadges(hotel) {
+  const badges = [];
+
+  if (hotel.property_type) badges.push(`<span class="badge badge-type">${escapeHtml(hotel.property_type)}</span>`);
+  if (hotel.star_rating) badges.push(`<span class="badge badge-rating">&#9733; ${escapeHtml(hotel.star_rating)} Star</span>`);
+  if (hotel.city) badges.push(`<span class="badge badge-type">${escapeHtml(hotel.city)}</span>`);
+  if (hotel.minPrice) badges.push(`<span class="badge badge-price">From ${formatPrice(hotel.minPrice)}</span>`);
+
+  document.getElementById("modalBadges").innerHTML = badges.join("");
+}
+
+function renderModalGallery(hotel) {
+  const photos = toArray(hotel.photo_urls);
+  const gallery = document.getElementById("modalGallery");
+
+  if (!photos.length) {
+    gallery.innerHTML = `<p>No photos available.</p>`;
+    return;
+  }
+
+  const visible = photos.slice(0, 4);
+  const remaining = photos.length - visible.length;
+
+  gallery.innerHTML = visible.map((url, i) => {
+    if (i === visible.length - 1 && remaining > 0) {
+      return `
+        <div class="see-more-container" data-full-gallery>
+          <img src="${url}" alt="More photos">
+          <div class="see-more-overlay">
+            <span class="plus-sign">+${remaining}</span>
+          </div>
+        </div>`;
     }
+    return `<img src="${url}" class="teaser-item" alt="${escapeHtml(hotel.service_name)}">`;
+  }).join("");
 
-    // 3. Open the second modal
-    fullModal.style.display = "block";
+  gallery.querySelectorAll(".teaser-item, .see-more-container").forEach(el => {
+    el.addEventListener("click", () => openFullGallery(hotel));
+  });
+}
+
+function renderModalTabs(hotel) {
+  const overviewHtml = `
+    <div class="info-grid">
+      <div class="info-card">
+        <ion-icon name="location-outline"></ion-icon>
+        <div class="info-label">Address</div>
+        <div class="info-value">${escapeHtml(hotel.address || "-")}, ${escapeHtml(hotel.city || "-")}</div>
+      </div>
+      <div class="info-card">
+        <ion-icon name="call-outline"></ion-icon>
+        <div class="info-label">Contact</div>
+        <div class="info-value">${escapeHtml(hotel.contact || "-")}</div>
+      </div>
+      <div class="info-card">
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <div class="info-label">Price Basis</div>
+        <div class="info-value">${escapeHtml(hotel.price_basis || "-")}</div>
+      </div>
+      <div class="info-card">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <div class="info-label">Tax / Service Charge</div>
+        <div class="info-value">${escapeHtml(hotel.tax_service_charge || "-")}</div>
+      </div>
+      <div class="info-card">
+        <ion-icon name="sparkles-outline"></ion-icon>
+        <div class="info-label">Cleaning Fee</div>
+        <div class="info-value">${formatPrice(hotel.cleaning_fees || 0)}</div>
+      </div>
+      <div class="info-card">
+        <ion-icon name="bed-outline"></ion-icon>
+        <div class="info-label">Total Rooms</div>
+        <div class="info-value">${hotel.total_rooms ?? "-"}</div>
+      </div>
+    </div>
+    <div class="modal-info-item">
+      <b>Description</b>
+      ${escapeHtml(hotel.description || "No description provided.")}
+    </div>
+  `;
+
+  const amenitiesHtml = `
+    <div class="modal-info-item"><b>Facilities</b></div>
+    <div class="chip-group">
+      ${toArray(hotel.facilities).map(f => `<span class="chip">${escapeHtml(f)}</span>`).join("") || `<span class="chip">None listed</span>`}
+    </div>
+
+    <div class="modal-info-item" style="margin-top:20px;"><b>Parking</b></div>
+    <div class="chip-group">
+      ${toArray(hotel.parkings).map(p => `<span class="chip">${escapeHtml(p)}</span>`).join("") || `<span class="chip">None listed</span>`}
+    </div>
+
+    <div class="info-grid" style="margin-top:20px;">
+      <div class="info-card">
+        <ion-icon name="wifi-outline"></ion-icon>
+        <div class="info-label">Connectivity</div>
+        <div class="info-value">${escapeHtml(hotel.connectivity || "-")}</div>
+      </div>
+      <div class="info-card">
+        <ion-icon name="paw-outline"></ion-icon>
+        <div class="info-label">Pets Allowed</div>
+        <div class="info-value">${escapeHtml(hotel.pets_allowed || "-")}</div>
+      </div>
+    </div>
+  `;
+
+  const rooms = toArray(hotel.rooms);
+  const roomsHtml = rooms.length
+    ? rooms.map(r => `
+      <div class="room-card">
+        <div>
+          <h4>${escapeHtml(r.room_category_name || "Room")}</h4>
+          <div class="room-meta">${escapeHtml(r.bed_type || "-")} &middot; ${r.number_of_beds || 0} bed(s)${r.room_size ? " &middot; " + r.room_size + " " + escapeHtml(r.room_size_unit || "") : ""}</div>
+          <div class="room-meta">${r.available_rooms ?? 0} room(s) available</div>
+          ${toArray(r.facilities).length ? `<div class="chip-group" style="margin-top:8px;">${r.facilities.map(f => `<span class="chip">${escapeHtml(f)}</span>`).join("")}</div>` : ""}
+        </div>
+        <div class="room-price-tag">${formatPrice(r.price)}</div>
+      </div>
+    `).join("")
+    : `<div class="modal-info-item">No room details added yet.</div>`;
+
+  document.getElementById("modalInfoContainer").innerHTML = `
+    <div class="modal-tab-panel active" data-panel="overview">${overviewHtml}</div>
+    <div class="modal-tab-panel" data-panel="amenities">${amenitiesHtml}</div>
+    <div class="modal-tab-panel" data-panel="rooms">${roomsHtml}</div>
+  `;
+}
+
+function resetModalTabs() {
+  document.querySelectorAll("#modalTabs .modal-tab-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.tab === "overview");
+  });
+  document.querySelectorAll("#modalInfoContainer .modal-tab-panel").forEach(panel => {
+    panel.classList.toggle("active", panel.dataset.panel === "overview");
+  });
+}
+
+function wireModalTabs() {
+  const tabs = document.getElementById("modalTabs");
+  if (!tabs) return;
+
+  tabs.addEventListener("click", event => {
+    const btn = event.target.closest(".modal-tab-btn");
+    if (!btn) return;
+
+    const target = btn.dataset.tab;
+    tabs.querySelectorAll(".modal-tab-btn").forEach(b => b.classList.toggle("active", b === btn));
+    document.querySelectorAll("#modalInfoContainer .modal-tab-panel").forEach(panel => {
+      panel.classList.toggle("active", panel.dataset.panel === target);
+    });
+  });
+}
+
+function closeDetails() {
+  document.getElementById("detailsModal").style.display = "none";
+}
+window.closeDetails = closeDetails;
+
+function openFullGallery(hotel) {
+  document.getElementById("fullGalleryTitle").textContent = `${hotel.service_name} — All Photos`;
+  const grid = document.getElementById("fullGalleryGrid");
+  const photos = toArray(hotel.photo_urls);
+
+  grid.innerHTML = photos.length
+    ? photos.map(url => `<img src="${url}" class="full-gallery-img" alt="${escapeHtml(hotel.service_name)}">`).join("")
+    : "<p>No photos available.</p>";
+
+  document.getElementById("fullGalleryModal").style.display = "block";
 }
 
 function closeFullGallery() {
-    document.getElementById('fullGalleryModal').style.display = "none";
+  document.getElementById("fullGalleryModal").style.display = "none";
 }
-
-// 1. Get the search input element
-const searchInput = document.getElementById('hotelSearch');
-
-// 2. Listen for the 'Enter' key to trigger the search
-searchInput.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        
-        // 3. Filter the global hotels array
-        const filteredHotels = hotels.filter(hotel => 
-            hotel.service_name.toLowerCase().includes(searchTerm)
-        );
-
-        // 4. Check if results were found
-        if (filteredHotels.length > 0) {
-            // Display only the matching hotels
-            displayHotels(filteredHotels);
-            
-            // Optional: Smoothly scroll to the results section
-            document.getElementById('hotelGrid').scrollIntoView({ behavior: 'smooth' });
-        } else {
-            // Show the popup if no hotel exists
-            document.getElementById('searchAlertModal').style.display = "block";
-            
-            // Reset to show all hotels again
-            displayHotels(hotels);
-        }
-    }
-});
-
-searchInput.addEventListener('input', function () {
-    if (searchInput.value === "") {
-        displayHotels(hotels); // Show everything again if the box is empty
-    }
-});
+window.closeFullGallery = closeFullGallery;
 
 function closeSearchAlert() {
-    document.getElementById('searchAlertModal').style.display = "none";
+  document.getElementById("searchAlertModal").style.display = "none";
+}
+window.closeSearchAlert = closeSearchAlert;
+
+//Event wiring
+
+function wireFilterControls() {
+  document.getElementById("hotelSearch").addEventListener("input", applyFilters);
+  document.getElementById("hotelSearch").addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      applyFilters();
+      if (currentHotels.length === 0) {
+        document.getElementById("searchAlertModal").style.display = "block";
+      }
+    }
+  });
+
+  document.getElementById("cityFilter").addEventListener("change", applyFilters);
+  document.getElementById("sortFilter").addEventListener("change", applyFilters);
+
+  document.getElementById("priceFilter").addEventListener("input", event => {
+    document.getElementById("priceValue").textContent = formatPrice(event.target.value);
+    applyFilters();
+  });
+
+  document.getElementById("wishlistFilter").addEventListener("click", () => {
+    const btn = document.getElementById("wishlistFilter");
+    btn.classList.toggle("active-filter");
+    applyFilters();
+  });
+
+  document.getElementById("resetFilters").addEventListener("click", () => {
+    document.getElementById("cityFilter").value = "all";
+    document.getElementById("sortFilter").value = "default";
+    document.getElementById("priceFilter").value = 100000;
+    document.getElementById("priceValue").textContent = formatPrice(100000);
+    document.getElementById("hotelSearch").value = "";
+    document.getElementById("wishlistFilter").classList.remove("active-filter");
+    applyFilters();
+  });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const mobileToggleBtn = document.getElementById('mobileFilterToggle');
-    const sidebarFilterPanel = document.getElementById('sidebarFilter');
-    const closeSidebarBtn = document.getElementById('closeSidebar');
+function wireMobileSidebar() {
+  const toggle = document.getElementById("mobileFilterToggle");
+  const sidebar = document.getElementById("sidebarFilter");
+  const closeBtn = document.getElementById("closeSidebar");
 
-    if (mobileToggleBtn && sidebarFilterPanel && closeSidebarBtn) {
-        // Slide open the drawer panel
-        mobileToggleBtn.addEventListener('click', () => {
-            sidebarFilterPanel.classList.add('open');
-        });
-
-        // Slide close panel via 'X' element click
-        closeSidebarBtn.addEventListener('click', () => {
-            sidebarFilterPanel.classList.remove('open');
-        });
-
-        // Clean UI management: automatically close sidebar if user selects options on mobile
-        const elementsToDismissSidebar = sidebarFilterPanel.querySelectorAll('select, button');
-        elementsToDismissSidebar.forEach(element => {
-            element.addEventListener('change', () => {
-                // Keep panel open for adjustments on sliders, close for distinct dropdown clicks
-                if (element.id !== 'priceFilter') {
-                    sidebarFilterPanel.classList.remove('open');
-                }
-            });
-            // Specific execution for wishlist button click dismiss
-            if (element.id === 'wishlistFilter' || element.id === 'resetFilters') {
-                element.addEventListener('click', () => {
-                    sidebarFilterPanel.classList.remove('open');
-                });
-            }
-        });
-    }
-});
-
-// =========================================
-// 5. Global Cleanup and Initialization
-// =========================================
-window.onclick = function(event) {
-    const detailsModal = document.getElementById('detailsModal');
-    const galleryModal = document.getElementById('fullGalleryModal');
-    
-    if (event.target == detailsModal) {
-        detailsModal.style.display = "none";
-    }
-    
-    if (event.target == galleryModal) {
-        galleryModal.style.display = "none";
-    }
+  if (toggle && sidebar) {
+    toggle.addEventListener("click", () => sidebar.classList.add("open"));
+  }
+  if (closeBtn && sidebar) {
+    closeBtn.addEventListener("click", () => sidebar.classList.remove("open"));
+  }
 }
 
-document.addEventListener('DOMContentLoaded', fetchHotels);
+function wireTransportDropdown() {
+  const transportBtn = document.getElementById("transportBtn");
+  const transportMenu = document.getElementById("transportMenu");
 
-// Listen for changes
-cityFilter.addEventListener('change', applyFilters);
-priceFilter.addEventListener('input', applyFilters);
-sortFilter.addEventListener('change', applyFilters);
+  if (!transportBtn || !transportMenu) return;
 
-wishlistBtn.addEventListener('click', () => {
-    // Toggle the state
-    favoritesOnly = !favoritesOnly;
+  transportBtn.addEventListener("click", event => {
+    event.stopPropagation();
+    transportMenu.classList.toggle("show");
+  });
 
-    // Update button appearance
-    if (favoritesOnly) {
-        wishlistBtn.classList.add('active-filter');
-        wishlistBtn.innerText = "Showing Liked";
-    } else {
-        wishlistBtn.classList.remove('active-filter');
-        wishlistBtn.innerText = "Show Liked";
-    }
+  document.addEventListener("click", () => transportMenu.classList.remove("show"));
+}
 
-    // Run the filters again
-    applyFilters();
+function wireModalBackdropClicks() {
+  window.addEventListener("click", event => {
+    if (event.target === document.getElementById("detailsModal")) closeDetails();
+    if (event.target === document.getElementById("fullGalleryModal")) closeFullGallery();
+    if (event.target === document.getElementById("bookingAlertModal")) closeBookingAlert();
+    if (event.target === document.getElementById("searchAlertModal")) closeSearchAlert();
+  });
+}
+
+// Init
+  
+document.addEventListener("DOMContentLoaded", () => {
+  wireFilterControls();
+  wireMobileSidebar();
+  wireTransportDropdown();
+  wireModalBackdropClicks();
+  wireModalTabs();
+  loadHotels();
 });
-
-// Update the Reset button logic to also turn off favorites
-resetBtn.addEventListener('click', () => {
-    cityFilter.value = 'all';
-    priceFilter.value = 100000;
-    sortFilter.value = 'default';
-    favoritesOnly = false; // Reset the favorite state
-    wishlistBtn.classList.remove('active-filter');
-    wishlistBtn.innerText = "Show Liked";
-    applyFilters();
-});
-
