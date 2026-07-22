@@ -11,517 +11,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<style>
-:root{
-  --accent:#38bdf8;
-  --glass:rgba(186,230,253,0.18);
-  --border:rgba(186,230,253,0.28);
-  --bg:#020617;
-}
-
-*{box-sizing:border-box}
-
-
-body{
-  margin:0;
-  min-height:100vh;
-  font-family:'Inter',system-ui;
-  color:#fff;
-  display:flex;
-  background:#000;
-  overflow-x:hidden;
-}
-/* ===== BUSINESS BACKGROUND IMAGE ===== */
-.bg-layer{
-  position: fixed;
-  inset: -5%;
-  background-image: url('https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg');
-  background-size: cover;
-  background-position: center;
-  filter: brightness(0.45);
-  animation: zoomBreath 20s infinite alternate ease-in-out;
-  z-index: -1;
-}
-
-@keyframes zoomBreath {
-  from { transform: scale(1); }
-  to   { transform: scale(1.1); }
-}
-
-/* ===== SIDEBAR ===== */
-.sidebar{
-  width:260px;
-  height:100vh;
-  background:linear-gradient(
-    180deg,
-    rgba(1, 32, 47, 0.45),   /* darker sky blue */
-    rgba(2,132,199,0.28)
-  );
-  backdrop-filter:blur(20px);
-  border-right:1px solid rgba(186,230,253,0.35);
-}
-
-
-.logo{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  font-size:1.2rem;
-  font-weight:700;
-  color:var(--accent);
-  margin-bottom:35px;
-}
-
-.nav{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-
-.nav a{
-  text-decoration:none;
-  color:#cbd5e1;
-  padding:12px 14px;
-  border-radius:14px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  transition:.3s;
-  font-size:.95rem;
-  cursor:pointer;
-}
-
-.nav a:hover{
-  background:rgba(56,189,248,.15);
-  color:#fff;
-}
-
-.nav a.active{
-  background:linear-gradient(135deg,rgba(56,189,248,.35),rgba(56,189,248,.15));
-  color:#fff;
-}
-
-.section-title{
-  margin:20px 0 8px;
-  font-size:.7rem;
-  letter-spacing:1px;
-  text-transform:uppercase;
-  opacity:.6;
-}
-
-.submenu{
-  margin-left:12px;
-  margin-top:6px;
-  display:flex;        /* ✅ allow flex */
-  flex-direction:column;
-  gap:4px;
-}
-
-.submenu a{
-  padding:10px 14px;
-  font-size:.9rem;
-  background:rgba(56,189,248,.08);
-  border-radius:12px;
-}
-
-/* ===== MAIN ===== */
-.main{flex:1}
-
-/* ===== HEADER ===== */
-header{
-  padding:22px 5%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  backdrop-filter:blur(25px);
-  background:rgba(0,0,0,0.45);
-  border-bottom:1px solid var(--border);
-}
-
-h1{font-size:1.7rem}
-
-/* ===== CONTENT ===== */
-.container{
-  max-width:1200px;
-  margin:auto;
-  padding:30px 5%;
-}
-
-/* ===== TABS ===== */
-.tabs{
-  display:flex;
-  gap:30px;
-  margin-bottom:25px;
-  border-bottom:1px solid rgba(255,255,255,.15);
-}
-
-.tab-active{
-  padding-bottom:10px;
-  border-bottom:2px solid var(--accent);
-  color:var(--accent);
-  font-weight:600;
-}
-
-/* ===== CARD ===== */
-.card{
-  background:linear-gradient(
-    180deg,
-    rgba(224,242,254,0.28),
-    rgba(186,230,253,0.14)
-  );
-  backdrop-filter:blur(34px) saturate(190%);
-  border:1px solid var(--border);
-  border-radius:24px;
-  padding:24px;
-  margin-bottom:25px;
-  box-shadow:0 25px 60px rgba(14,165,233,0.35);
-}
-
-/* ===== GRID ===== */
-.flex{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:20px;
-}
-
-/* ===== SERVICE CARD ===== */
-.service-box{
-  background:rgba(186,230,253,0.16);
-  border:1px solid rgba(186,230,253,0.35);
-  border-radius:18px;
-  padding:20px;
-  cursor:pointer;
-  transition:.3s;
-}
-.service-box:hover{
-  transform:translateY(-6px);
-  box-shadow:0 20px 40px rgba(56,189,248,.35);
-}
-.service-box b{display:block}
-
-/* ===== BUTTON ===== */
-button{
-  background:linear-gradient(135deg,var(--accent),#0ea5e9);
-  border:none;
-  color:#fff;
-  padding:14px 20px;
-  border-radius:14px;
-  cursor:pointer;
-  font-weight:700;
-}
-/* ===== FORM STYLING (CLEAN) ===== */
-form{
-  margin-top:20px;
-}
-
-.form-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  gap:16px;
-}
-
-label{
-  font-size:.75rem;
-  opacity:.7;
-  margin-bottom:6px;
-  display:block;
-}
-
-input, textarea, select{
-  width:100%;
-  padding:14px 16px;
-  background:rgba(186,230,253,0.18);
-  border:1px solid rgba(186,230,253,0.35);
-  border-radius:14px;
-  color:#fff;
-  outline:none;
-  transition:.3s;
-  font-size:.9rem;
-}
-
-textarea{
-  resize:none;
-  min-height:90px;
-}
-
-input:focus,
-textarea:focus,
-select:focus{
-  border-color:var(--accent);
-  box-shadow:0 0 0 2px rgba(56,189,248,.35);
-}
-
-.form-actions{
-  display:flex;
-  justify-content:flex-end;
-  margin-top:20px;
-}
-/* ===== PROFILE ICON ===== */
-.profile{
-  position:relative;
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  background:linear-gradient(
-    135deg,
-    rgba(56,189,248,.35),
-    rgba(56,189,248,.15)
-  );
-  border:1px solid rgba(56,189,248,.45);
-}
-
-.profile i{
-  font-size:18px;
-  color:#fff;
-}
-
-/* Tooltip */
-.profile-tooltip{
-  position:absolute;
-  top:52px;
-  right:0;
-  background:rgba(2, 18, 85, 0.95);
-  border:1px solid rgba(186,230,253,.35);
-  backdrop-filter:blur(12px);
-  padding:8px 12px;
-  border-radius:10px;
-  font-size:.8rem;
-  white-space:nowrap;
-  opacity:0;
-  pointer-events:none;
-  transform:translateY(-6px);
-  transition:.25s;
-  color:#fff;
-  z-index:10;
-}
-
-.profile:hover .profile-tooltip{
-  opacity:1;
-  transform:translateY(0);
-}
-.profile-letter{
-  font-size:18px;
-  font-weight:600;
-  color:#fff;
-  text-transform:uppercase;
-  user-select:none;
-}
-/* ===== LOGO IMAGE ===== */
-.logo{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.logo-img{
-  width:60px;
-  height:60px;
-  object-fit:cover;
-  border-radius:50%;
-  border:2px solid rgba(186,230,253,0.6);
-  box-shadow:0 0 12px rgba(56,189,248,.35);
-}
-.main header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-
-  padding:18px 24px;
-  margin-bottom:20px;
-  border-radius:18px;
-
-  background:linear-gradient(
-    180deg,
-    rgba(2,132,199,0.45),
-    rgba(2,132,199,0.28)
-  );
-
-  backdrop-filter:blur(18px);
-  border:1px solid rgba(186,230,253,0.35);
-  box-shadow:0 8px 24px rgba(2,132,199,.35);
-}
-
-.main header h1{
-  margin:0;
-  font-size:1.4rem;
-  font-weight:600;
-  color:#fff;
-}
-
-/* ===== MODAL ===== */
-.modal-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(2,6,23,.75);
-  backdrop-filter:blur(10px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-.modal-overlay.hidden{
-  display:none;
-}
-
-.modal{
-  width:90%;
-  max-width:700px;
-  max-height:90vh;
-  overflow-y:auto;
-
-  background:linear-gradient(
-    180deg,
-    rgba(224,242,254,0.35),
-    rgba(186,230,253,0.18)
-  );
-  border:1px solid rgba(186,230,253,.35);
-  border-radius:26px;
-  padding:28px;
-  box-shadow:0 30px 80px rgba(56,189,248,.45);
-  position:relative;
-}
-
-.modal-close{
-  position:absolute;
-  top:16px;
-  right:20px;
-  font-size:28px;
-  cursor:pointer;
-  opacity:.7;
-}
-.modal-close:hover{opacity:1}
-
-/* ===== PROFILE MENU ===== */
-.profile-menu{
-  position:absolute;
-  top:52px;
-  right:0;
-  min-width:160px;
-  background:rgba(2, 18, 85, 0.95);
-  border:1px solid rgba(186,230,253,.35);
-  backdrop-filter:blur(12px);
-  border-radius:14px;
-  padding:8px;
-  box-shadow:0 10px 30px rgba(0,0,0,.45);
-  z-index:20;
-}
-
-.profile-menu div{
-  padding:10px 12px;
-  border-radius:10px;
-  cursor:pointer;
-  font-size:.9rem;
-}
-
-.profile-menu div:hover{
-  background:rgba(56,189,248,.15);
-}
-
-.hidden{ display:none !important; }
-/* ===== MOBILE FIX ===== */
-@media (max-width: 768px) {
-
-  body{
-    font-size: 16px;
-  }
-
-  h1{
-    font-size: 1.6rem;
-  }
-
-  label{
-    font-size: .85rem;
-  }
-
-  input, textarea, select{
-    font-size: 1rem;
-    padding: 16px 18px;
-  }
-
-  button{
-    font-size: 1rem;
-    padding: 16px 22px;
-    min-height: 48px;
-  }
-
-  .nav a{
-    font-size: 1rem;
-    min-height: 48px;
-  }
-
-  .service-box{
-    font-size: 1rem;
-    min-height: 48px;
-  }
-}
-
-/* ===== MOBILE SIDEBAR TOGGLE ===== */
-.mobile-menu-btn{
-  display:none;
-  font-size:26px;
-  cursor:pointer;
-}
-
-@media (max-width: 768px) {
-
-  .mobile-menu-btn{
-    display:block;
-  }
-
-  body{
-    flex-direction: column;
-  }
-
-  .sidebar{
-    position: fixed;
-    top: 0;
-    left: -100%;
-    height: 100vh;
-    width: 260px;
-    z-index: 1000;
-    transition: left .3s ease;
-  }
-
-  .sidebar.active{
-    left: 0;
-  }
-
-  .main{
-    margin-left: 0;
-  }
-}
-/* ===== SIDEBAR CLOSE BUTTON ===== */
-.sidebar-close{
-  display: none;
-  position: absolute;
-  top: 16px;
-  right: -45px;
-  width: 40px;
-  height: 40px;
-  background: #020617;
-  border-radius: 50%;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(0,0,0,.4);
-}
-
-.sidebar-close i{
-  font-size: 18px;
-}
-
-/* Mobile only */
-@media (max-width: 768px){
-  .sidebar-close{
-    display: flex;
-  }
-}
-
-</style>
+<link rel="stylesheet" href="../css/business_style.css">
 </head>
 
 <body>
@@ -552,10 +42,10 @@ select:focus{
     </a>
 
     <div id="addServicesMenu" class="submenu hidden">
-      <a onclick="openForm('transport')">🚗 Transport</a>
-      <a onclick="openForm('hotel')">🏨 Hotel</a>
-      <a onclick="openForm('restaurant')">🍽 Restaurant</a>
-      <a onclick="openForm('guide')">🧭 Guide</a>
+      <button type="button" id="addTransportServiceBtn"><i class="fa-solid fa-car-side"></i> Transport</button>
+      <button type="button" id="addHotelServiceBtn"><i class="fa-solid fa-hotel"></i> Hotel</button>
+      <button type="button" id="addRestaurantServiceBtn"><i class="fa-solid fa-utensils"></i> Restaurant</button>
+      <button type="button" id="addGuideServiceBtn"><i class="fa-solid fa-user-check"></i> Guide</button>
     </div>
   </nav>
 </aside>
@@ -603,597 +93,486 @@ select:focus{
   </div>
 </div>
 
-<script>
-const supabaseUrl = 'https://cdcolkoavowjjymzdzud.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkY29sa29hdm93amp5bXpkenVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0MDI2NjQsImV4cCI6MjA4Mzk3ODY2NH0.JPzj9fI1pKpPbPxyGqsemjcwpKiu0h046H7aBSURnpM';
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-const API="https://script.google.com/macros/s/AKfycbzv6-zAB61O4n4-4ofGXUXns2lAx8JrJcvOZQ6YnvuW1z7n1KvB90VMahIm27Q6xBpYrQ/exec";
-/*const email = localStorage.getItem("user_email");*/
-
-/*const email = localStorage.getItem("user_email") || "testbusiness@gotravel.com";*/
-let editingRow = null;
-let email = null;
-let selectedPhotoFiles = [];
-let existingPhotos = [];
-let removedPhotoPaths = [];
-let map;
-let marker;
-
-const photoIndex = {
-  transport: 7,
-  hotel: 7,
-  restaurant: 10,
-  guide: 6
-};
-
-document.addEventListener("DOMContentLoaded", async () => {
-  const { data, error } = await supabaseClient.auth.getUser();
-
-  if (error || !data.user) {
-    location.href = "auth.html";
-    return;
-  }
-
-  email = data.user.email;
-
-  document.getElementById("profileLetter").textContent =
-    email.charAt(0).toUpperCase();
-
-  ["transport","hotel","restaurant","guide"].forEach(loadServices);
-
-  document.getElementById("modalOverlay").addEventListener("click", e=>{
-  if(e.target.id === "modalOverlay") closeModal();
-});
-  document.getElementById("profileBtn").addEventListener("click", e => {
-  e.stopPropagation();
-  document.getElementById("profileMenu").classList.toggle("hidden");
-});
-
-document.addEventListener("click", () => {
-  document.getElementById("profileMenu").classList.add("hidden");
-});
-
-});
-document.getElementById("postedServices").innerHTML = "";
-
-async function logout(){
-  await supabaseClient.auth.signOut();
-  localStorage.removeItem("userFName");
-  localStorage.removeItem("userLName");
-  location.href = "auth.html";
-}
-
-function toggleAddServices(event){
-  event.stopPropagation();
-  document.getElementById("addServicesMenu").classList.toggle("hidden");
-}
-
-//["transport","hotel","restaurant","guide"].forEach(loadServices);
-
-async function loadServices(type){
-
-  const { data, error } = await supabaseClient
-    .from("services")
-    .select("*")
-    .eq("email", email)
-    .eq("service_type", type);
-
-  if(error){
-    console.error(error);
-    return;
-  }
-
-  if(data.length){
-    document.getElementById("noServices").style.display="none";
-  }
-
-  data.forEach(r=>{
-
-    const box=document.createElement("div");
-    box.className="service-box";
-
-    box.innerHTML=`
-      <b>${r.service_name}</b>
-      <small>${r.service_type}</small>
-    `;
-
-    box.onclick=()=>{
-      editingRow=r.id;
-      openForm(type,r);
-    };
-
-    document.getElementById("postedServices").appendChild(box);
-
-  });
-}
-function openForm(type, data = null){
-  editingRow = data ? data.id : null;
-  existingPhotos = (data?.photo_urls || []).map((url, i) => ({
-    url: url,
-    path: data?.photo_paths?.[i]
-  }));
-
-  selectedPhotoFiles = [];
-  removedPhotoPaths = [];
-
-  if(window.innerWidth <= 768){
-    document.querySelector(".sidebar").classList.remove("active");
-  }
-  // Close Add Services dropdown (optional UX)
-  const menu = document.getElementById("addServicesMenu");
-  if(menu) menu.classList.add("hidden");
-
-  const modal = document.getElementById("modalOverlay");
-  const f = document.getElementById("modalContent");
-  modal.classList.remove("hidden");
-
-  const common = `
-  <div>
-    <label>Service Name</label>
-    <input name="service_name" value="${data?.service_name || ''}" required>
-  </div>
-
-  <div>
-    <label>Contact</label>
-    <input name="contact" value="${data?.contact || ''}">
-  </div>
-
-  <div style="grid-column:1/-1">
-    <label>Description</label>
-    <textarea name="description">${data?.description || ''}</textarea>
-  </div>
-
-  <div style="grid-column:1/-1">
-  <label>Photo</label>
-  <div id="photoPreviewContainer"
-    style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;"></div>
-
-  <input type="file" accept="image/*" multiple onchange="handlePhoto(event)">
-</div>
-
-`;
-
-  let extra = "";
-
-  if(type === "transport"){
-  extra = `
-    <div>
-      <label>Address</label>
-      <input name="address" value="${data?.address || ''}">
-    </div>
-
-    <div>
-      <label>Transport Type</label>
-      <select name="transport_type">
-        <option ${data?.transport_type ==="Public"?"selected":""}>Public</option>
-        <option ${data?.transport_type==="Private"?"selected":""}>Private</option>
-      </select>
-    </div>
-
-    <div>
-      <label>Price per KM</label>
-      <input name="price" value="${data?.price || ''}">
-    </div>
-  `;
-}
-
-  if(type === "hotel"){
-  extra = `
-    <div>
-      <label>City</label>
-      <input name="city" value="${data?.city || ''}">
-    </div>
-
-    <div>
-      <label>Address</label>
-      <input name="address" value="${data?.address || ''}">
-    </div>
-
-    <div>
-      <label>Price</label>
-      <input name="price" value="${data?.price || ''}">
-    </div>
-
-    <div style="grid-column:1/-1">
-      <label>Select Location</label>
-      <div id="map" style="height:300px;border-radius:12px;"></div>
-    </div>
-
-    <input type="hidden" name="latitude">
-    <input type="hidden" name="longitude">
-  `;
-}
-
-  if(type === "restaurant"){
-  extra = `
-    <div>
-      <label>City</label>
-      <input name="city" value="${data?.city || ''}">
-    </div>
-
-    <div>
-      <label>Address</label>
-      <input name="address" value="${data?.address || ''}">
-    </div>
-
-    <div>
-      <label>Average Price</label>
-      <input name="price" value="${data?.price || ''}">
-    </div>
-
-    <div>
-      <label>Breakfast</label>
-      <select name="breakfast">
-        <option ${data?.breakfast==="YES"?"selected":""}>YES</option>
-        <option ${data?.breakfast==="NO"?"selected":""}>NO</option>
-      </select>
-    </div>
-
-    <div>
-      <label>Lunch</label>
-      <select name="lunch">
-        <option ${data?.lunch==="YES"?"selected":""}>YES</option>
-        <option ${data?.lunch==="NO"?"selected":""}>NO</option>
-      </select>
-    </div>
-
-    <div>
-      <label>Dinner</label>
-      <select name="dinner">
-        <option ${data?.dinner==="YES"?"selected":""}>YES</option>
-        <option ${data?.dinner==="NO"?"selected":""}>NO</option>
-      </select>
-    </div>
-
-    <div style="grid-column:1/-1">
-      <label>Select Location</label>
-      <div id="map" style="height:300px;border-radius:12px;"></div>
-    </div>
-
-    <input type="hidden" name="latitude">
-    <input type="hidden" name="longitude">
-  `;
-}
-
-  if(type === "guide"){
-  extra = `
-    <div>
-      <label>Location</label>
-      <input name="city" value="${data?.city || ''}">
-    </div>
-
-    <div>
-      <label>Languages</label>
-      <input name="languages" value="${data?.languages || ''}">
-    </div>
-  `;
-}
-
-f.innerHTML = `
-  <h3>${data ? "Edit" : "Add"} ${type}</h3>
-
-  <form id="serviceForm">
-    <div class="form-grid">
-      ${common}
-      ${extra}
-    </div>
-
-    <div class="form-actions" style="gap:12px">
-      ${data ? `
-    <button type="button" onclick="deleteService()"
-      style="background:#ef4444">
-      Delete Service
+<div id="transportFormModal" class="form-modal hidden">
+  <form id="transportForm">
+    <button type="button" class="form-top-close" onclick="document.getElementById('transportFormModal').classList.add('hidden')">
+      &times;
     </button>
-  ` : ""}
-  <button type="submit">Save Service</button>
-</div>
+    <h2>Add Transport Service</h2>
+
+    <section>
+      <h3>Service Info</h3>
+
+      <input type="text" id="serviceName" placeholder="Service name" required />
+      <input type="text" id="serviceContact" placeholder="Contact" required />
+      <input type="text" id="serviceAddress" placeholder="Address" required />
+      <textarea id="serviceDescription" placeholder="Description"></textarea>
+      <input type="file" id="servicePhotos" multiple accept="image/*" />
+    </section>
+
+    <section>
+      <h3>Driver Info</h3>
+
+      <div id="driversContainer"></div>
+      <button type="button" id="addDriverBtn">Add Driver</button>
+    </section>
+
+    <section>
+      <h3>Vehicle Info</h3>
+
+      <div id="vehiclesContainer"></div>
+      <button type="button" id="addVehicleBtn">Add Vehicle</button>
+    </section>
+
+    <button type="submit">Save Transport Service</button>
+    <button type="button" id="closeTransportModal">Cancel</button>
   </form>
-`;
+</div>
 
-document
-  .getElementById("serviceForm")
-  .addEventListener("submit", e => save(e, type));
-renderPhotos();
-if(type === "hotel" || type === "restaurant"){
-  setTimeout(() => initMap(data), 200);
-}
-}
+<div id="hotelFormModal" class="form-modal hidden">
+  <form id="hotelForm">
+    <button type="button" class="form-top-close" onclick="document.getElementById('hotelFormModal').classList.add('hidden')">
+      &times;
+    </button>
+    <h2>Add Hotel Service</h2>
 
+    <section>
+      <h3>Service Info</h3>
 
-async function save(e,type){
+      <input type="text" id="hotelServiceName" placeholder="Service name" required />
 
-  e.preventDefault();
+      <select id="hotelPropertyType" required>
+        <option value="">Property type</option>
+        <option value="Hotel">Hotel</option>
+        <option value="Villa">Villa</option>
+        <option value="Guest House">Guest House</option>
+        <option value="Apartment">Apartment</option>
+        <option value="Homestay">Homestay</option>
+      </select>
 
-  const fd = new FormData(e.target);
-  const data = Object.fromEntries(fd.entries());
-  let photoUrls = existingPhotos
-    .filter(p => p.path)
-    .map(p => p.url);
+      <select id="hotelStarRating" required>
+        <option value="">Star rating</option>
+        <option value="1">1 Star</option>
+        <option value="2">2 Star</option>
+        <option value="3">3 Star</option>
+        <option value="4">4 Star</option>
+        <option value="5">5 Star</option>
+        <option value="Unrated">Unrated</option>
+      </select>
 
-  let photoPaths = existingPhotos
-    .filter(p => p.path)
-    .map(p => p.path);
+      <input type="number" id="hotelTotalRooms" placeholder="Total no of rooms" required />
+      <input type="text" id="hotelContact" placeholder="Contact" required />
+      <input type="text" id="hotelAddress" placeholder="Address" required />
+      <textarea id="hotelDescription" placeholder="Description"></textarea>
+      <input type="text" id="hotelCity" placeholder="City" required />
 
-  // upload new photos
-  for (let file of selectedPhotoFiles) {
-    const upload = await uploadToSupabase(file);
+      <div class="location-picker-box">
+        <h4>Hotel Location</h4>
 
-    photoUrls.push(upload.url);
-    photoPaths.push(upload.path);
-  }
-
-  // delete removed photos from storage
-  for (let path of removedPhotoPaths) {
-    await supabaseClient
-      .storage
-      .from("service-photos")
-      .remove([path]);
-  }
-
-  data.photo_urls = photoUrls;
-  data.photo_paths = photoPaths;
-  data.email = email;
-  data.service_type = type;
-
-  if(editingRow){
-
-    const { error } = await supabaseClient
-      .from("services")
-      .update(data)
-      .eq("id", editingRow);
-
-    if(error){
-      console.error(error);
-      alert("Update failed");
-      return;
-    }
-
-  }else{
-
-    const { error } = await supabaseClient
-      .from("services")
-      .insert(data);
-
-    if(error){
-      console.error(error);
-      alert("Insert failed");
-      return;
-    }
-
-  }
-
-  location.reload();
-}
-
-async function deleteService(){
-
-  if(!confirm("Delete this service?")) return;
-
-  // 1. Get photo_path
-  const { data: service, error: fetchError } = await supabaseClient
-    .from("services")
-    .select("photo_paths")
-    //.select("photo_path")
-    .eq("id", editingRow)
-    .single();
-
-  if(fetchError){
-    console.error(fetchError);
-    alert("Failed to fetch service");
-    return;
-  }
-
-  // 2. Delete photo from storage
-  if(service?.photo_paths && service.photo_paths.length){
-    console.log("Deleting paths:", service.photo_paths);
-    const { error: storageError } = await supabaseClient
-      .storage
-      .from("service-photos")
-      .remove(service.photo_paths);
-
-    if(storageError){
-      console.error("Storage delete error:", storageError);
-    }
-  }
-
-  // 3. Delete DB row
-  const { error } = await supabaseClient
-    .from("services")
-    .delete()
-    .eq("id", editingRow);
-
-  if(error){
-    alert("Delete failed");
-    console.error(error);
-    return;
-  }
-
-  location.reload();
-}
-
-function closeModal(){
-  document.getElementById("modalOverlay").classList.add("hidden");
-  editingRow = null;
-}
-
-function openProfileModal(){
-  document.getElementById("profileMenu").classList.add("hidden");
-
-  const modal = document.getElementById("modalOverlay");
-  const content = document.getElementById("modalContent");
-
-  const first_name = localStorage.getItem("userFName") || "";
-  const last_name = localStorage.getItem("userLName") || "";
-  const category = "Business";
-
-  content.innerHTML = `
-    <h3>My Profile</h3>
-
-    <form>
-      <div class="form-grid">
-        <div>
-          <label>First Name</label>
-          <input value="${first_name}" disabled>
+        <div class="location-search-row">
+          <input type="text" id="hotelLocationSearch" placeholder="Search hotel location or address" />
+          <button type="button" id="searchHotelLocationBtn">Search</button>
         </div>
 
-        <div>
-          <label>Last Name</label>
-          <input value="${last_name}" disabled>
-        </div>
+        <input type="hidden" id="hotelLatitude" />
+        <input type="hidden" id="hotelLongitude" />
 
-        <div>
-          <label>Email</label>
-          <input value="${email}" disabled>
-        </div>
+        <div id="hotelMap" class="service-map"></div>
 
-        <div>
-          <label>Account Type</label>
-          <input value="${category}" disabled>
+        <p class="location-hint">
+          Search location or click on the map to select the exact hotel location.
+        </p>
+      </div>
+
+      <select id="hotelPriceBasis" required>
+        <option value="">Price basis</option>
+        <option value="Per Night">Per Night</option>
+        <option value="Per Week">Per Week</option>
+        <option value="Per Month">Per Month</option>
+      </select>
+
+      <select id="hotelTaxServiceCharge" required>
+        <option value="">Tax and service charge</option>
+        <option value="Included">Included</option>
+        <option value="Added at Checkout">Added at Checkout</option>
+      </select>
+
+      <input type="number" id="hotelCleaningFees" placeholder="Cleaning fees" />
+
+      <div class="checkbox-section">
+  <h4 class="checkbox-section-title">Hotel Facilities</h4>
+
+  <div class="checkbox-options">
+    <label>
+      <input type="checkbox" name="hotelFacilities" value="Pool" />
+      Pool
+    </label>
+
+    <label>
+      <input type="checkbox" name="hotelFacilities" value="Gym" />
+      Gym
+    </label>
+
+    <label>
+      <input type="checkbox" name="hotelFacilities" value="Spa" />
+      Spa
+    </label>
+
+    <label>
+      <input type="checkbox" name="hotelFacilities" value="Sauna" />
+      Sauna
+    </label>
+
+    <label>
+      <input type="checkbox" name="hotelFacilities" value="Garden" />
+      Garden
+    </label>
+
+    <label>
+      <input type="checkbox" name="hotelFacilities" value="Cafe" />
+      Cafe
+    </label>
+
+    <label>
+      <input type="checkbox" name="hotelFacilities" value="Bar" />
+      Bar
+    </label>
+
+    <label>
+      <input type="checkbox" name="hotelFacilities" value="Restaurant" />
+      Restaurant
+    </label>
+
+    <label>
+      <input type="checkbox" name="hotelFacilities" value="Laundry Service" />
+      Laundry Service
+    </label>
+  </div>
+</div>
+
+      <select id="hotelConnectivity">
+        <option value="">Connectivity</option>
+        <option value="Free WiFi">Free WiFi</option>
+        <option value="Paid WiFi">Paid WiFi</option>
+      </select>
+
+      <div class="checkbox-section">
+        <h4 class="checkbox-section-title">Parking Options</h4>
+        <div class="checkbox-options">
+          <label>
+            <input type="checkbox" name="hotelParkings" value="Free" />
+            Free parking
+          </label>
+          <label>
+            <input type="checkbox" name="hotelParkings" value="Paid" />
+            Paid parking
+          </label>
+          <label>
+            <input type="checkbox" name="hotelParkings" value="Street Parking" />
+            Street parking
+          </label>
+          <label>
+            <input type="checkbox" name="hotelParkings" value="Vallet Parking" />
+            Vallet parking
+          </label>
         </div>
       </div>
 
-      <div class="form-actions">
-        <button type="button" onclick="closeModal()">Close</button>
+      <select id="hotelPetsAllowed">
+        <option value="">Pets allowed</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <input type="file" id="hotelServicePhotos" multiple accept="image/*" />
+    </section>
+
+    <section>
+      <h3>Room Info</h3>
+
+      <div id="hotelRoomsContainer"></div>
+      <button type="button" id="addHotelRoomBtn">Add Room</button>
+    </section>
+
+    <button type="submit">Save Hotel Service</button>
+    <button type="button" id="closeHotelModal">Cancel</button>
+  </form>
+</div>
+<div id="restaurantFormModal" class="form-modal hidden">
+  <form id="restaurantForm">
+    <button type="button" class="form-top-close" onclick="document.getElementById('restaurantFormModal').classList.add('hidden')">
+      &times;
+    </button>
+    <h2>Add Restaurant Service</h2>
+
+    <section>
+      <h3>Service Info</h3>
+
+      <input type="text" id="restServiceName" placeholder="Service name" required />
+      <input type="text" id="restContact" placeholder="Contact" required />
+      <input type="text" id="restAddress" placeholder="Address" required />
+      <textarea id="restDescription" placeholder="Description"></textarea>
+      <input type="text" id="restCity" placeholder="City" required />
+
+      <div class="location-picker-box">
+        <h4>Restaurant Location</h4>
+
+        <div class="location-search-row">
+          <input type="text" id="restLocationSearch" placeholder="Search restaurant location or address" />
+          <button type="button" id="searchRestLocationBtn">Search</button>
+        </div>
+
+        <input type="hidden" id="restLatitude" />
+        <input type="hidden" id="restLongitude" />
+
+        <div id="restMap" class="service-map"></div>
+
+        <p class="location-hint">
+          Search location or click on the map to select the exact restaurant location.
+        </p>
       </div>
-    </form>
-  `;
-
-  modal.classList.remove("hidden");
-}
-function toggleSidebar(){
-  document.querySelector(".sidebar").classList.toggle("active");
-}
-function closeSidebar(){
-  document.querySelector(".sidebar").classList.remove("active");
-}
 
 
-function handlePhoto(e){
-  const files = Array.from(e.target.files);
+      <h3>Operating Hours</h3>
+      <div id="restOperatingHoursContainer"></div>
+      <button type="button" id="addRestOperatingHourBtn">Add Operating Hour</button>
 
-  files.forEach(file => {
+      <select id="restBreakfast">
+        <option value="">Breakfast</option>
+        <option value="Yes">Breakfast - Yes</option>
+        <option value="No">Breakfast - No</option>
+      </select>
 
-    selectedPhotoFiles.push(file);
+      <select id="restLunch">
+        <option value="">Lunch</option>
+        <option value="Yes">Lunch - Yes</option>
+        <option value="No">Lunch - No</option>
+      </select>
 
-    const previewUrl = URL.createObjectURL(file);
+      <select id="restDinner">
+        <option value="">Dinner</option>
+        <option value="Yes">Dinner - Yes</option>
+        <option value="No">Dinner - No</option>
+      </select>
 
-    existingPhotos.push({
-      url: previewUrl,
-      path: null
-    });
+      <label>Last order time</label>
+      <input type="time" id="restLastOrderTime" />
 
-  });
+      <div class="checkbox-section">
+  <h4 class="checkbox-section-title">Seating Categories</h4>
 
-  renderPhotos();
-}
+  <div class="checkbox-options">
+    <label>
+      <input type="checkbox" name="restSeatCategories" value="Indoor" />
+      Indoor
+    </label>
 
-async function uploadToSupabase(file) {
-  const ext = file.name.split('.').pop();
-  const path = `${email}/${Date.now()}.${ext}`;
+    <label>
+      <input type="checkbox" name="restSeatCategories" value="Outdoors" />
+      Outdoors
+    </label>
 
-  const { error } = await supabaseClient
-    .storage
-    .from("service-photos")
-    .upload(path, file, { upsert: true });
+    <label>
+      <input type="checkbox" name="restSeatCategories" value="Roof Top" />
+      Rooftop
+    </label>
 
-  if (error) {
-    alert("Photo upload failed");
-    throw error;
-  }
+    <label>
+      <input type="checkbox" name="restSeatCategories" value="Private Rooms" />
+      Private Rooms
+    </label>
+  </div>
+</div>
+      <textarea id="restSignatureDishes" placeholder="Signature dishes"></textarea>
 
-  const { data } = supabaseClient
-    .storage
-    .from("service-photos")
-    .getPublicUrl(path);
+      <select id="restVegetarianOptions">
+        <option value="">Vegetarian options</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
 
-  return {
-    url: data.publicUrl,
-    path: path
-  };
-}
+      <select id="restHalalOptions">
+        <option value="">Halal options</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
 
-function renderPhotos() {
-  const container = document.getElementById("photoPreviewContainer");
-  container.innerHTML = "";
+      <select id="restGlutenFreeOptions">
+        <option value="">Gluten-free options</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
 
-  existingPhotos.forEach((photo, index) => {
-    const div = document.createElement("div");
-    div.style.position = "relative";
+      <select id="restKidsMenu">
+        <option value="">Kids menu</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
 
-    div.innerHTML = `
-      <img src="${photo.url}" 
-        style="width:120px;height:90px;object-fit:cover;border-radius:10px;">
-      
-      <button onclick="removePhoto(${index})"
-        style="
-          position:absolute;
-          top:4px;
-          right:4px;
-          background:red;
-          color:white;
-          border:none;
-          border-radius:50%;
-          width:22px;
-          height:22px;
-          cursor:pointer;
-        ">×</button>
-    `;
+      <select id="restBuffetAvailable">
+        <option value="">Buffet available</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
 
-    container.appendChild(div);
-  });
-}
+      <label>Buffet time</label>
+      <input type="time" id="restBuffetTime" />
 
-function removePhoto(index){
-  const removed = existingPhotos[index];
+      <select id="restTakeAway">
+        <option value="">Take away</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
 
-  if(removed?.path){
-    removedPhotoPaths.push(removed.path);
-  }
+      <select id="restHomeDelivery">
+        <option value="">Home delivery</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
 
-  existingPhotos.splice(index, 1);
-  renderPhotos();
-}
+      <input type="number" id="restDeliveryRadiusKm" placeholder="Delivery radius in KM" />
 
-function initMap(data){
+      <select id="restTaxesIncluded">
+        <option value="">Taxes included</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
 
-  const defaultLat = 7.8731;
-  const defaultLng = 80.7718;
+      <div class="checkbox-section">
+        <h4 class="checkbox-section-title">Facilities</h4>
+        <div class="checkbox-options">
+          <label>
+            <input type="checkbox" name="restFacilities" value="AC" />
+            AC
+          </label>
+          <label>
+            <input type="checkbox" name="restFacilities" value="WiFi" />
+            WiFi
+          </label>
+          <label>
+            <input type="checkbox" name="restFacilities" value="Free Parking" />
+            Free parking
+          </label>
+          <label>
+            <input type="checkbox" name="restFacilities" value="Valet Parking" />
+            Valet parking
+          </label>
+          <label>
+            <input type="checkbox" name="restFacilities" value="Kids Play Area" />
+            Kids play area
+          </label>
+          <label>
+            <input type="checkbox" name="restFacilities" value="Smoking Area" />
+            Smoking area
+          </label>
+      <label><input type="checkbox" name="restFacilities" value="TV Screenings" /> TV screenings</label>
+      <label><input type="checkbox" name="restFacilities" value="Restrooms" /> Restrooms</label>
+      <label><input type="checkbox" name="restFacilities" value="Charging Points" /> Charging points</label>
+      <label><input type="checkbox" name="restFacilities" value="Live Music" /> Live music</label>
+      </div>
+      </div>
 
-  const lat = data?.latitude || defaultLat;
-  const lng = data?.longitude || defaultLng;
+      <div class="checkbox-section">
+  <h4 class="checkbox-section-title">Payment Methods</h4>
 
-  if(map){
-    map.remove();
-  }
+  <div class="checkbox-options">
+    <label>
+      <input type="checkbox" name="restPaymentMethods" value="Cash" />
+      Cash
+    </label>
 
-  map = L.map('map').setView([lat, lng], 8);
+    <label>
+      <input type="checkbox" name="restPaymentMethods" value="Card" />
+      Card
+    </label>
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
+    <label>
+      <input type="checkbox" name="restPaymentMethods" value="Online Payment" />
+      Online Payment
+    </label>
+  </div>
+</div>
 
-  marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+      <input type="file" id="restPhotos" multiple accept="image/*" />
+    </section>
 
-  document.querySelector('[name="latitude"]').value = lat;
-  document.querySelector('[name="longitude"]').value = lng;
+    <button type="submit">Save Restaurant Service</button>
+    <button type="button" id="closeRestaurantModal">Cancel</button>
+  </form>
+</div>
+<div id="guideFormModal" class="form-modal hidden">
+  <form id="guideForm">
+    <button type="button" class="form-top-close" onclick="document.getElementById('guideFormModal').classList.add('hidden')">
+      &times;
+    </button>
+    <h2>Add Guide Service</h2>
 
-  map.on('click', function(e){
-    const { lat, lng } = e.latlng;
-    marker.setLatLng([lat, lng]);
+    <section>
+      <h3>Service Info</h3>
 
-    document.querySelector('[name="latitude"]').value = lat;
-    document.querySelector('[name="longitude"]').value = lng;
-  });
+      <input type="text" id="guideServiceName" placeholder="Service name" required />
+      <input type="text" id="guideContact" placeholder="Contact" required />
+      <input type="text" id="guideAddress" placeholder="Address" required />
+      <textarea id="guideDescription" placeholder="Description"></textarea>
 
-  marker.on('dragend', function(){
-    const pos = marker.getLatLng();
+      <input type="number" id="guideYearsExperience" placeholder="Years of experience" />
+      <input type="text" id="guideLicenseNumber" placeholder="Guide License Number" />
 
-    document.querySelector('[name="latitude"]').value = pos.lat;
-    document.querySelector('[name="longitude"]').value = pos.lng;
-  });
-}
-</script>
+      <label>License expiry date</label>
+      <input type="date" id="guideLicenseExpiryDate" />
+
+      <h3>Languages</h3>
+      <label><input type="checkbox" name="guideLanguages" value="Sinhala" /> Sinhala</label>
+      <label><input type="checkbox" name="guideLanguages" value="English" /> English</label>
+      <label><input type="checkbox" name="guideLanguages" value="Tamil" /> Tamil</label>
+      <label><input type="checkbox" name="guideLanguages" value="Hindi" /> Hindi</label>
+      <label><input type="checkbox" name="guideLanguages" value="Russian" /> Russian</label>
+      <label><input type="checkbox" name="guideLanguages" value="French" /> French</label>
+      <label><input type="checkbox" name="guideLanguages" value="German" /> German</label>
+      <label><input type="checkbox" name="guideLanguages" value="Spanish" /> Spanish</label>
+      <label><input type="checkbox" name="guideLanguages" value="Chinese" /> Chinese</label>
+      <label><input type="checkbox" name="guideLanguages" value="Japanese" /> Japanese</label>
+      <label><input type="checkbox" name="guideLanguages" value="Korean" /> Korean</label>
+      <label><input type="checkbox" id="guideOtherLanguageCheck" value="Other" /> Other</label>
+      <input type="text" id="guideOtherLanguage" placeholder="Other language" />
+
+      <h3>Specializations</h3>
+      <label><input type="checkbox" name="guideSpecializations" value="Cultural Tour" /> Cultural tour</label>
+      <label><input type="checkbox" name="guideSpecializations" value="Historical Tour" /> Historical tour</label>
+      <label><input type="checkbox" name="guideSpecializations" value="Wildlife" /> Wildlife</label>
+      <label><input type="checkbox" name="guideSpecializations" value="Food Tour" /> Food tour</label>
+      <label><input type="checkbox" name="guideSpecializations" value="Hiking" /> Hiking</label>
+      <label><input type="checkbox" name="guideSpecializations" value="Religious Tours" /> Religious tours</label>
+      <label><input type="checkbox" name="guideSpecializations" value="Cycling Tours" /> Cycling tours</label>
+
+      <textarea id="guidePricingDetails" placeholder="Pricing Details"></textarea>
+
+      <h3>Facilities</h3>
+      <label><input type="checkbox" name="guideFacilities" value="Hotel Pickup" /> Hotel pickup</label>
+      <label><input type="checkbox" name="guideFacilities" value="Hotel Drop Off" /> Hotel drop off</label>
+      <label><input type="checkbox" name="guideFacilities" value="AC Vehicle" /> AC vehicle</label>
+      <label><input type="checkbox" name="guideFacilities" value="Private Vehicle" /> Private vehicle</label>
+      <label><input type="checkbox" name="guideFacilities" value="Driver Included" /> Driver Included</label>
+      <label><input type="checkbox" name="guideFacilities" value="First AID Kit" /> First AID kit</label>
+      <label><input type="checkbox" name="guideFacilities" value="Family Friendly" /> Family friendly</label>
+      <label><input type="checkbox" name="guideFacilities" value="Child Friendly" /> Child friendly</label>
+      <label><input type="checkbox" name="guideFacilities" value="Senior Friendly" /> Senior Friendly</label>
+
+      <h3>Payment Methods</h3>
+      <label><input type="checkbox" name="guidePaymentMethods" value="Cash" /> Cash</label>
+      <label><input type="checkbox" name="guidePaymentMethods" value="Card" /> Card</label>
+      <label><input type="checkbox" name="guidePaymentMethods" value="Mobile Payments" /> Mobile payments</label>
+      <label><input type="checkbox" name="guidePaymentMethods" value="Bank Transfers" /> Bank transfers</label>
+
+      <input type="file" id="guidePhotos" multiple accept="image/*" />
+    </section>
+
+    <button type="submit">Save Guide Service</button>
+    <button type="button" id="closeGuideModal">Cancel</button>
+  </form>
+</div>
+
+<script src="../backend/business_script.js"></script>
 
 </body>
 </html>
