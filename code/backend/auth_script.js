@@ -244,3 +244,89 @@
                 window.location.href = userData?.account_type === 'business' ? "business.html" : "personal.html";
             }, 1000);
         }
+
+        // ==========================================
+// ==========================================
+// 4. GOOGLE OAUTH SIGN IN (INTERCEPTION MODAL)
+// ==========================================
+let pendingGoogleUser = null;
+
+async function signInWithGoogle() {
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.href }
+    });
+    
+    if (error) {
+        showToast("Google login failed: " + error.message, "error");
+    }
+}
+
+// Controls the UI selection in the new modal
+function selectGoogleRole(role) {
+    document.getElementById('google-selected-role').value = role;
+    document.getElementById('google-opt-personal').classList.toggle('selected', role === 'personal');
+    document.getElementById('google-opt-business').classList.toggle('selected', role === 'business');
+}
+
+// Executes when the user clicks "FINISH SETUP"
+async function completeGoogleRegistration(btn) {
+    if (!pendingGoogleUser) return;
+    
+    btn.innerText = "SETTING UP...";
+    const role = document.getElementById('google-selected-role').value;
+    
+    // Parse Google's provided name
+    const fullName = pendingGoogleUser.user_metadata?.full_name || 'Traveler';
+    const nameParts = fullName.split(' ');
+    const fName = nameParts[0] || 'User';
+    const lName = nameParts.slice(1).join(' ') || '';
+
+    // Insert into custom users table
+    const { error } = await supabaseClient.from('users').insert([{
+        email: pendingGoogleUser.email,
+        first_name: fName,
+        last_name: lName,
+        account_type: role
+    }]);
+
+    if (error) {
+        showToast("Setup failed: " + error.message, "error");
+        btn.innerText = "FINISH SETUP";
+        return;
+    }
+
+    // Hide modal and route correctly
+    document.getElementById('google-role-modal').classList.remove('visible');
+    showToast("Account Created!", "success");
+    
+    setTimeout(() => {
+        window.location.href = role === 'business' ? "business.html" : "personal.html";
+    }, 1000);
+}
+
+// Automatically catch returning Google users
+window.addEventListener('DOMContentLoaded', () => {
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            
+            const { data: userData } = await supabaseClient
+                .from('users')
+                .select('account_type')
+                .eq('email', session.user.email)
+                .single();
+
+            if (!userData) {
+                // BRAND NEW USER: Trigger the interception modal
+                pendingGoogleUser = session.user;
+                document.getElementById('google-role-modal').classList.add('visible');
+            } else {
+                // EXISTING USER: Bypass modal and route to their dashboard
+                showToast("Login Successful!", "success");
+                setTimeout(() => {
+                    window.location.href = userData.account_type === 'business' ? "business.html" : "personal.html";
+                }, 1000);
+            }
+        }
+    });
+});
